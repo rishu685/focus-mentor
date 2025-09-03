@@ -201,10 +201,4 @@ We welcome contributions! Please follow these steps:
 4. Push to your branch
 5. Create a Pull Request
 
-## License
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
-
----
-
-Built with 💡 by Kartik Labhshetwar
