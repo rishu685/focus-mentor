@@ -21,26 +21,27 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Mind Mentor - Your AI Study Assistant",
-  description: "Accelerate your learning with AI-powered study plans and resources",
+  title: "Focus Mentor - Your AI Study Assistant",
+  description: "Personalize your learning with AI-powered study plans and resources.",
   openGraph: {
-    url: 'https://www.mind-mentor.ink/',
-    siteName: 'Mind Mentor - Your AI Study Assistant',
-    locale: 'en_US',
-    type: 'website',
-    images: [{
-      url: 'https://www.mind-mentor.ink/thumbnail.png',
-      width: 1200,
-      height: 630,
-      alt: 'Mind Mentor - Your AI Study Assistant'
-    }],
+    title: "Focus Mentor - Your AI Study Assistant",
+    description: "Personalize your learning with AI-powered study plans and resources.",
+    siteName: 'Focus Mentor - Your AI Study Assistant',
+    type: "website",
+    images: [
+      {
+        url: '/thumbnail.png',
+        width: 1200,
+        height: 630,
+        alt: 'Focus Mentor - Your AI Study Assistant'
+      }
+    ]
   },
   twitter: {
-    title: "Mind Mentor - Your AI Study Assistant",
-    description: "Accelerate your learning with AI-powered study plans and resources",
-    images: 'https://www.mind-mentor.ink/thumbnail.png',
-  }
-};
+    title: "Focus Mentor - Your AI Study Assistant",
+    description: "Personalize your learning with AI-powered study plans and resources.",
+  },
+}
 
 export default function RootLayout({
   children,

@@ -5,9 +5,11 @@ export function Footer() {
     <footer className="bottom-0 w-full bg-background z-50 py-8 border-t-2 border-border">
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center gap-4 md:flex-row md:justify-center md:relative">
-          <div className="text-sm text-foreground text-center">
-            © {new Date().getFullYear()} Mind Mentor. All rights reserved.
-          </div>
+                  <div className="text-center py-8">
+          <p className="text-muted-foreground text-sm">
+            © {new Date().getFullYear()} Focus Mentor. All rights reserved.
+          </p>
+        </div>
 
           <div className="flex items-center gap-4 md:absolute md:right-0">
             <a
