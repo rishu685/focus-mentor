@@ -189,16 +189,6 @@ Used for:
 2. Ask questions about the content
 3. View source pages and relevant excerpts
 4. Navigate through the document while chatting
-5. Access chat history for previous conversations
-
-## Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to your branch
-5. Create a Pull Request
+5. Access chat history for previous conversationss
 
 
