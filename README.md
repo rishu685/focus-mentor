@@ -189,6 +189,6 @@ Used for:
 2. Ask questions about the content
 3. View source pages and relevant excerpts
 4. Navigate through the document while chatting
-5. Access chat history for previous conversationss
+5. Access chat history for previous conversationss # issue not working properly
 
 
