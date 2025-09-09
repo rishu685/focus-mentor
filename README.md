@@ -1,4 +1,4 @@
-# Focus Mentor: AI-Powered Study Assistant 
+# Focus Mentor: AI-Powered Study Assistant [final year project]
 
 ## Table of Contents
 - [Overview](#overview)
@@ -10,11 +10,7 @@
 - [Contributing](#contributing)
 - [License](#license)
 
-## Demo
 
-
-
-https://github.com/user-attachments/assets/1ea26947-1dca-408d-9741-b24c3429944a
 
 
 
@@ -189,22 +185,6 @@ Used for:
 2. Ask questions about the content
 3. View source pages and relevant excerpts
 4. Navigate through the document while chatting
-5. Access chat history for previous conversations
+5. Access chat history for previous conversationss # issue not working properly, need to be fixed
 
-## Contributing
 
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to your branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
-
----
-
-Built with 💡 by Kartik Labhshetwar
