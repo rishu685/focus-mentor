@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Brain, BookOpen, Target, Send, RotateCcw, Volume2, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { MessageCircle, Brain, BookOpen, Target, Send, RotateCcw, Copy, ThumbsUp } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   messageType: 'question' | 'explanation' | 'encouragement' | 'quiz' | 'suggestion';
-  attachments?: any[];
+  attachments?: unknown[];
 }
 
 export default function StudyBuddyPage() {
@@ -39,20 +39,7 @@ export default function StudyBuddyPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    // Initialize with welcome message
-    if (!conversationStarted) {
-      initializeStudyBuddy();
-      setConversationStarted(true);
-    }
-  }, [conversationStarted]);
-
-  useEffect(() => {
-    // Scroll to bottom when new messages are added
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const initializeStudyBuddy = async () => {
+  const initializeStudyBuddy = useCallback(async () => {
     const welcomeMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'assistant',
@@ -75,7 +62,20 @@ What subject would you like to study today?`,
     
     // Set up personalized context based on user's study history
     await setupPersonalizedContext();
-  };
+  }, [session?.user?.name]);
+
+  useEffect(() => {
+    // Initialize with welcome message
+    if (!conversationStarted) {
+      initializeStudyBuddy();
+      setConversationStarted(true);
+    }
+  }, [conversationStarted, initializeStudyBuddy]);
+
+  useEffect(() => {
+    // Scroll to bottom when new messages are added
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -203,7 +203,7 @@ What subject would you like to study today?`,
                   {/* Personality Selector */}
                   <select 
                     value={buddyPersonality}
-                    onChange={(e) => setBuddyPersonality(e.target.value as any)}
+                    onChange={(e) => setBuddyPersonality(e.target.value as 'encouraging' | 'challenging' | 'patient' | 'analytical')}
                     className="text-sm border rounded px-2 py-1"
                   >
                     <option value="encouraging">🌟 Encouraging</option>
@@ -325,10 +325,10 @@ What subject would you like to study today?`,
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handleQuickAction("I'm feeling stuck, can you help?")}
+                    onClick={() => handleQuickAction("I&apos;m feeling stuck, can you help?")}
                     className="text-xs"
                   >
-                    😕 I'm Stuck
+                    😕 I&apos;m Stuck
                   </Button>
                   <Button 
                     variant="outline" 

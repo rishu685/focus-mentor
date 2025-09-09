@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       console.log('No session found, proceeding with anonymous user');
     }
 
-    const { message, context, personality, chatHistory, userName } = await request.json();
+    const { message, context, personality, userName } = await request.json();
 
     // Validate required fields
     if (!message || typeof message !== 'string') {
@@ -19,15 +19,29 @@ export async function POST(request: NextRequest) {
 
     console.log('Processing study buddy request...');
 
-    // For now, use intelligent fallback responses while we debug Groq
-    const fallbackResponse = generateFallbackResponse(message, personality || 'encouraging', userName || 'Student');
-    const messageType = determineMessageType(fallbackResponse, message);
+    // Try Groq API first, fallback if it fails
+    try {
+      const groqResponse = await callGroqAPI(message, personality || 'encouraging', userName || 'Student');
+      const messageType = determineMessageType(groqResponse, message);
 
-    return NextResponse.json({
-      content: fallbackResponse,
-      messageType,
-      updatedContext: context
-    });
+      return NextResponse.json({
+        content: groqResponse,
+        messageType,
+        updatedContext: context
+      });
+    } catch (groqError) {
+      console.error('Groq API failed, using fallback:', groqError);
+      
+      // Use fallback response if Groq fails
+      const fallbackResponse = generateFallbackResponse(message, personality || 'encouraging', userName || 'Student');
+      const messageType = determineMessageType(fallbackResponse, message);
+
+      return NextResponse.json({
+        content: fallbackResponse,
+        messageType,
+        updatedContext: context
+      });
+    }
 
   } catch (error) {
     console.error('Study buddy API error:', error);
@@ -38,26 +52,54 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function createSystemPrompt(personality: string, context: any, userName: string): string {
-  return `You are an AI Study Buddy helping ${userName || 'a student'}. You are knowledgeable, helpful, and ${personality}.
+async function callGroqAPI(message: string, personality: string, userName: string): Promise<string> {
+  const systemPrompt = `You are an AI Study Buddy helping ${userName}. You are knowledgeable, helpful, and ${personality}.
 
 Your role:
-- Answer academic questions clearly
-- Explain concepts in simple terms  
+- Answer academic questions clearly and concisely
+- Explain complex concepts in simple terms
 - Provide study tips and motivation
 - Create practice questions when asked
 - Be supportive and encouraging
+- Keep responses focused and educational
 
-Respond in a friendly, conversational way that helps the student learn effectively.`;
-}
+Personality: ${personality}
+- If encouraging: Be positive, supportive, and motivating
+- If challenging: Push for deeper thinking and more effort
+- If patient: Take time to explain thoroughly and calmly
+- If analytical: Focus on logical reasoning and systematic approaches
 
-function formatChatHistory(chatHistory: any[]): any[] {
-  if (!chatHistory || chatHistory.length === 0) return [];
+Respond in a friendly, conversational way that helps the student learn effectively. Keep responses concise but helpful.`;
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'llama-3.1-8b-instant',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: message }
+      ],
+      max_tokens: 500,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`Groq API error: ${response.status} - ${errorData}`);
+  }
+
+  const data = await response.json();
   
-  return chatHistory.slice(-6).map(msg => ({
-    role: msg.role === 'user' ? 'user' : 'assistant',
-    content: msg.content
-  }));
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    throw new Error('Invalid response format from Groq API');
+  }
+
+  return data.choices[0].message.content;
 }
 
 function determineMessageType(content: string, userMessage: string): string {
