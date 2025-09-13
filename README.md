@@ -1,4 +1,4 @@
-# Focus Mentor: AI-Powered Study Assistant [final year project]
+# Focus Mentor: AI-Powered Study Assistant [final year project] final needed
 
 ## Table of Contents
 - [Overview](#overview)
