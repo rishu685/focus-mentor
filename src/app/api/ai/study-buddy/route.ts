@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       console.log('No session found, proceeding with anonymous user');
     }
 
-    const { message, context, personality, userName } = await request.json();
+    const { message, context, personality, userName, chatHistory, conversationHistory } = await request.json();
 
     // Validate required fields
     if (!message || typeof message !== 'string') {
@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
 
     // Try Groq API first, fallback if it fails
     try {
-      const groqResponse = await callGroqAPI(message, personality || 'encouraging', userName || 'Student');
+      const historyToUse = chatHistory || conversationHistory || [];
+      const groqResponse = await callGroqAPI(message, personality || 'encouraging', userName || 'Student', historyToUse);
       const messageType = determineMessageType(groqResponse, message);
 
       return NextResponse.json({
@@ -52,7 +53,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function callGroqAPI(message: string, personality: string, userName: string): Promise<string> {
+async function callGroqAPI(message: string, personality: string, userName: string, conversationHistory: Array<{role: string, content: string}> = []): Promise<string> {
+  // Check if this looks like an MCQ answer (single letter or short answer)
+  const isMCQAnswer = /^[A-Da-d]$/i.test(message.trim()) && conversationHistory.length > 0;
+  
   const systemPrompt = `You are an AI Study Buddy named StudyBot helping ${userName}. You are an expert tutor across all academic subjects with a ${personality} personality.
 
 CORE CAPABILITIES:
@@ -70,6 +74,12 @@ PERSONALITY: ${personality}
 - Patient: Take time for thorough explanations, repeat concepts differently, be understanding
 - Analytical: Focus on logical reasoning, systematic approaches, data-driven insights
 
+SPECIAL CONTEXT AWARENESS:
+• Pay attention to the conversation history to understand context
+• If user gives a single letter (A, B, C, D), treat it as an answer to a previous multiple choice question
+• Always acknowledge MCQ answers appropriately and provide explanation
+• Keep track of quiz progress and provide constructive feedback
+
 RESPONSE GUIDELINES:
 1. Always be specific and actionable rather than generic
 2. Use real-world examples and practical applications
@@ -78,9 +88,39 @@ RESPONSE GUIDELINES:
 5. For math/science: Show step-by-step solutions
 6. For languages: Provide grammar rules with examples
 7. For coding: Include code snippets with explanations
-8. Always end with a follow-up question or next step
+8. For MCQ answers: Always explain why the answer is correct/incorrect and provide learning points
+9. Always end with a follow-up question or next step
 
 Remember: Be genuinely helpful, not just friendly. Provide value in every response!`;
+
+  // Build conversation messages including history
+  const messages = [
+    { role: 'system', content: systemPrompt }
+  ];
+
+  // Add conversation history (limit to last 10 messages to avoid token limits)
+  const recentHistory = conversationHistory.slice(-10);
+  for (const historyItem of recentHistory) {
+    if (historyItem.content && historyItem.role) {
+      messages.push({
+        role: historyItem.role === 'assistant' ? 'assistant' : 'user',
+        content: historyItem.content
+      });
+    }
+  }
+
+  // Add current message with special handling for MCQ answers
+  if (isMCQAnswer) {
+    messages.push({
+      role: 'user',
+      content: `My answer is: ${message}. Please tell me if this is correct and explain why.`
+    });
+  } else {
+    messages.push({
+      role: 'user',
+      content: message
+    });
+  }
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -90,10 +130,7 @@ Remember: Be genuinely helpful, not just friendly. Provide value in every respon
     },
     body: JSON.stringify({
       model: 'llama-3.1-8b-instant',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message }
-      ],
+      messages: messages,
       max_tokens: 800,
       temperature: 0.8
     })
