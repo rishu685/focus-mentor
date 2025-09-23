@@ -72,35 +72,141 @@ async function searchTavily(subject) {
 }
 
 async function searchYouTube(subject) {
-  // YouTube search queries for educational content
-  const queries = [
-    `${subject} tutorial for beginners`,
-    `${subject} complete course`,
-    `${subject} explained simply`,
-    `learn ${subject} step by step`
-  ];
-
+  // Return real YouTube channels and playlists for educational content
   const results = [];
   
-  for (const query of queries.slice(0, 2)) { // Limit to 2 queries
-    try {
-      // Using YouTube search API-like structure with educational channels
-      const educationalChannels = getEducationalChannels(subject);
-      const mockResults = educationalChannels.map((channel, index) => ({
-        title: `${subject} ${index === 0 ? 'Complete Tutorial' : index === 1 ? 'Beginner Course' : 'Advanced Guide'} - ${channel.name}`,
-        url: `https://youtube.com/watch?v=${generateVideoId(subject, channel.name)}`,
-        description: `Comprehensive ${subject} tutorial by ${channel.name}. ${channel.description}`,
+  try {
+    // Get subject-specific real YouTube resources
+    const youtubeResources = getRealYouTubeResources(subject);
+    
+    for (const resource of youtubeResources) {
+      results.push({
+        title: resource.title,
+        url: resource.url,
+        description: resource.description,
         source: 'YouTube',
         type: 'Video Course'
-      }));
-      
-      results.push(...mockResults.slice(0, 2));
-    } catch (error) {
-      console.error('YouTube search error:', error);
+      });
     }
+  } catch (error) {
+    console.error('YouTube search error:', error);
   }
 
   return results;
+}
+
+function getRealYouTubeResources(subject) {
+  const lowerSubject = subject.toLowerCase();
+  
+  // React resources
+  if (lowerSubject.includes('react')) {
+    return [
+      {
+        title: 'React Course for Beginners - freeCodeCamp',
+        url: 'https://www.youtube.com/watch?v=bMknfKXIFA8',
+        description: 'Complete React course for beginners. Learn React fundamentals including components, props, state, and hooks in this comprehensive tutorial.'
+      },
+      {
+        title: 'React Tutorial - Traversy Media',
+        url: 'https://www.youtube.com/watch?v=w7ejDZ8SWv8',
+        description: 'React crash course covering all the fundamentals including JSX, components, props, state, events, and more.'
+      }
+    ];
+  }
+  
+  // JavaScript resources
+  if (lowerSubject.includes('javascript') || lowerSubject.includes('js')) {
+    return [
+      {
+        title: 'JavaScript Full Course - freeCodeCamp',
+        url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg',
+        description: 'Learn JavaScript from scratch in this full course. Perfect for beginners who want to learn JavaScript fundamentals.'
+      },
+      {
+        title: 'JavaScript Crash Course - Traversy Media',
+        url: 'https://www.youtube.com/watch?v=hdI2bqOjy3c',
+        description: 'Modern JavaScript crash course covering ES6+ features, DOM manipulation, and practical examples.'
+      }
+    ];
+  }
+  
+  // Python resources
+  if (lowerSubject.includes('python')) {
+    return [
+      {
+        title: 'Python for Beginners - Programming with Mosh',
+        url: 'https://www.youtube.com/watch?v=_uQrJ0TkZlc',
+        description: 'Complete Python tutorial for beginners. Learn Python fundamentals including variables, functions, loops, and object-oriented programming.'
+      },
+      {
+        title: 'Python Full Course - freeCodeCamp',
+        url: 'https://www.youtube.com/watch?v=rfscVS0vtbw',
+        description: 'Learn Python programming from scratch with this comprehensive course covering all Python basics and advanced concepts.'
+      }
+    ];
+  }
+  
+  // Machine Learning resources
+  if (lowerSubject.includes('machine learning') || lowerSubject.includes('ml')) {
+    return [
+      {
+        title: 'Machine Learning Course - Andrew Ng',
+        url: 'https://www.youtube.com/playlist?list=PLLssT5z_DsK-h9vYZkQkYNWcItqhlRJLN',
+        description: 'Complete machine learning course by Andrew Ng from Stanford University. Covers supervised learning, unsupervised learning, and best practices.'
+      },
+      {
+        title: 'Machine Learning Explained - Zach Star',
+        url: 'https://www.youtube.com/watch?v=ukzFI9rgwfU',
+        description: 'Machine learning concepts explained in simple terms with real-world examples and practical applications.'
+      }
+    ];
+  }
+  
+  // Web Development resources
+  if (lowerSubject.includes('web development') || lowerSubject.includes('html') || lowerSubject.includes('css')) {
+    return [
+      {
+        title: 'Web Development Full Course - freeCodeCamp',
+        url: 'https://www.youtube.com/watch?v=nu_pCVPKzTk',
+        description: 'Complete web development course covering HTML, CSS, JavaScript, and modern web development practices.'
+      },
+      {
+        title: 'HTML & CSS Crash Course - Traversy Media',
+        url: 'https://www.youtube.com/watch?v=UB1O30fR-EE',
+        description: 'Learn HTML and CSS from scratch in this crash course. Build your first website with modern HTML5 and CSS3.'
+      }
+    ];
+  }
+  
+  // Math resources
+  if (lowerSubject.includes('math') || lowerSubject.includes('calculus') || lowerSubject.includes('algebra')) {
+    return [
+      {
+        title: 'Calculus 1 - Professor Leonard',
+        url: 'https://www.youtube.com/playlist?list=PLF797E961509B4EB5',
+        description: 'Complete Calculus 1 course with clear explanations and worked examples. Perfect for students learning calculus.'
+      },
+      {
+        title: 'Algebra Basics - Khan Academy',
+        url: 'https://www.youtube.com/playlist?list=PL7AF1C14AF1B05894',
+        description: 'Master algebra fundamentals with step-by-step explanations and practice problems.'
+      }
+    ];
+  }
+  
+  // Default educational content
+  return [
+    {
+      title: `${subject} Tutorial - Khan Academy`,
+      url: 'https://www.youtube.com/user/khanacademy',
+      description: `Educational videos about ${subject} from Khan Academy, providing free world-class education.`
+    },
+    {
+      title: `${subject} Explained - Crash Course`,
+      url: 'https://www.youtube.com/user/crashcourse',
+      description: `Learn ${subject} with engaging and comprehensive video lessons from Crash Course.`
+    }
+  ];
 }
 
 async function searchEducationalResources(subject) {
@@ -157,35 +263,42 @@ function getEducationalResourceTemplates(subject) {
   const baseResources = [
     {
       title: '{subject} - Khan Academy',
-      url: 'https://www.khanacademy.org/search?search_again=1&q={subject}',
+      url: 'https://www.khanacademy.org/search?page_search_query={subject}',
       description: 'Free, world-class education in {subject} with interactive exercises and videos',
       source: 'Khan Academy',
       type: 'Interactive Course'
     },
     {
-      title: '{subject} Tutorial - W3Schools',
-      url: 'https://www.w3schools.com/{subject}/',
-      description: 'Learn {subject} with examples, exercises, and references',
-      source: 'W3Schools',
-      type: 'Tutorial'
-    },
-    {
       title: '{subject} Documentation - MDN',
-      url: 'https://developer.mozilla.org/en-US/docs/Web/{subject}',
-      description: 'Official documentation and guides for {subject}',
+      url: 'https://developer.mozilla.org/en-US/search?q={subject}',
+      description: 'Comprehensive documentation and guides for {subject}',
       source: 'MDN',
       type: 'Documentation'
+    },
+    {
+      title: '{subject} Tutorial - freeCodeCamp',
+      url: 'https://www.freecodecamp.org/news/search/?query={subject}',
+      description: 'Learn {subject} with hands-on tutorials and practical projects',
+      source: 'freeCodeCamp',
+      type: 'Tutorial'
     }
   ];
 
-  // Add subject-specific resources
+  // Add subject-specific resources with real, working URLs
   if (lowerSubject.includes('javascript') || lowerSubject.includes('js')) {
     baseResources.push({
-      title: 'JavaScript - FreeCodeCamp',
+      title: 'JavaScript - freeCodeCamp',
       url: 'https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/',
-      description: 'Complete JavaScript course with interactive coding challenges',
-      source: 'FreeCodeCamp',
+      description: 'Complete JavaScript course with interactive coding challenges and certifications',
+      source: 'freeCodeCamp',
       type: 'Interactive Course'
+    });
+    baseResources.push({
+      title: 'JavaScript - MDN Web Docs',
+      url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript',
+      description: 'Comprehensive JavaScript documentation with examples and best practices',
+      source: 'MDN',
+      type: 'Documentation'
     });
   }
   
@@ -193,19 +306,67 @@ function getEducationalResourceTemplates(subject) {
     baseResources.push({
       title: 'Python Tutorial - Python.org',
       url: 'https://docs.python.org/3/tutorial/',
-      description: 'Official Python tutorial from the Python Foundation',
+      description: 'Official Python tutorial from the Python Software Foundation',
       source: 'Python.org',
       type: 'Tutorial'
+    });
+    baseResources.push({
+      title: 'Python - freeCodeCamp',
+      url: 'https://www.freecodecamp.org/learn/scientific-computing-with-python/',
+      description: 'Learn Python programming with scientific computing projects and certifications',
+      source: 'freeCodeCamp',
+      type: 'Interactive Course'
     });
   }
   
   if (lowerSubject.includes('react')) {
     baseResources.push({
-      title: 'React Documentation',
+      title: 'React Official Documentation',
       url: 'https://react.dev/learn',
-      description: 'Official React documentation with interactive examples',
+      description: 'Official React documentation with interactive examples and tutorials',
       source: 'React.dev',
       type: 'Documentation'
+    });
+    baseResources.push({
+      title: 'React - freeCodeCamp',
+      url: 'https://www.freecodecamp.org/learn/front-end-development-libraries/',
+      description: 'Learn React with hands-on projects in the Front End Development Libraries course',
+      source: 'freeCodeCamp',
+      type: 'Interactive Course'
+    });
+  }
+
+  if (lowerSubject.includes('html') || lowerSubject.includes('css')) {
+    baseResources.push({
+      title: 'HTML & CSS - W3Schools',
+      url: 'https://www.w3schools.com/html/',
+      description: 'Complete HTML and CSS tutorials with examples and exercises',
+      source: 'W3Schools',
+      type: 'Tutorial'
+    });
+    baseResources.push({
+      title: 'Responsive Web Design - freeCodeCamp',
+      url: 'https://www.freecodecamp.org/learn/responsive-web-design/',
+      description: 'Learn HTML and CSS through building real projects and earning certifications',
+      source: 'freeCodeCamp',
+      type: 'Interactive Course'
+    });
+  }
+
+  if (lowerSubject.includes('machine learning') || lowerSubject.includes('ml')) {
+    baseResources.push({
+      title: 'Machine Learning Course - Coursera',
+      url: 'https://www.coursera.org/learn/machine-learning',
+      description: 'Andrew Ng\'s famous machine learning course from Stanford University',
+      source: 'Coursera',
+      type: 'Online Course'
+    });
+    baseResources.push({
+      title: 'Machine Learning - Kaggle Learn',
+      url: 'https://www.kaggle.com/learn/intro-to-machine-learning',
+      description: 'Practical machine learning course with hands-on exercises and real datasets',
+      source: 'Kaggle',
+      type: 'Interactive Course'
     });
   }
 
@@ -223,17 +384,38 @@ function generateFallbackResults(subject) {
     results: [
       {
         title: `${subject} - Khan Academy`,
-        url: `https://www.khanacademy.org/search?q=${encodeURIComponent(subject)}`,
+        url: `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(subject)}`,
         description: `Learn ${subject} with free, world-class education from Khan Academy`,
         source: 'Khan Academy',
         type: 'Interactive Course'
       },
       {
-        title: `${subject} Tutorial - FreeCodeCamp`,
+        title: `${subject} Tutorial - freeCodeCamp`,
         url: `https://www.freecodecamp.org/news/search/?query=${encodeURIComponent(subject)}`,
-        description: `Comprehensive ${subject} tutorials and guides from FreeCodeCamp`,
-        source: 'FreeCodeCamp',
+        description: `Comprehensive ${subject} tutorials and guides from freeCodeCamp`,
+        source: 'freeCodeCamp',
         type: 'Tutorial'
+      },
+      {
+        title: `${subject} Documentation - MDN`,
+        url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(subject)}`,
+        description: `Official documentation and guides for ${subject} from MDN Web Docs`,
+        source: 'MDN',
+        type: 'Documentation'
+      },
+      {
+        title: `${subject} Course - Coursera`,
+        url: `https://www.coursera.org/search?query=${encodeURIComponent(subject)}`,
+        description: `University-level courses and specializations in ${subject} from top institutions`,
+        source: 'Coursera',
+        type: 'Online Course'
+      },
+      {
+        title: `${subject} Learning Path - Codecademy`,
+        url: `https://www.codecademy.com/search?query=${encodeURIComponent(subject)}`,
+        description: `Interactive ${subject} courses with hands-on practice and real projects`,
+        source: 'Codecademy',
+        type: 'Interactive Course'
       }
     ],
     answer: `Educational resources for ${subject}`
@@ -251,101 +433,14 @@ async function curateResources(searchData, subject) {
   }
 
   try {
-    // Prepare search results for AI analysis
-    const searchResults = searchData.results?.slice(0, 8) || [];
+    // For now, directly use our curated fallback resources which have real URLs
+    // This ensures all links work properly
+    console.log(`Generating curated resources for: ${subject}`);
+    const result = generateFallbackCuratedResources(subject);
     
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert educational curator who creates high-quality learning resource collections.
-          
-          TASK: Analyze the provided search results and create exactly 5 curated learning resources for the subject.
-          
-          REQUIREMENTS:
-          1. Include a mix of resource types: YouTube videos, interactive courses, documentation, tutorials
-          2. Prioritize free, accessible, high-quality educational content
-          3. Ensure URLs are working and properly formatted
-          4. Focus on beginner-friendly but comprehensive resources
-          5. Include both video content and text-based learning materials
-          
-          RESPONSE FORMAT: Return valid JSON only, no additional text.`
-        },
-        {
-          role: "user",
-          content: `Curate exactly 5 high-quality learning resources for: "${subject}"
-
-Available search results:
-${JSON.stringify(searchResults, null, 2)}
-
-Create a JSON response with this exact structure:
-{
-  "resources": [
-    {
-      "title": "Clear, descriptive title including platform name",
-      "url": "Valid, working URL to the resource",
-      "description": "Detailed 2-3 sentence description explaining what learners will gain",
-      "format": "Resource type: Video Course, Interactive Tutorial, Documentation, Article, or Course",
-      "benefits": [
-        "Specific learning benefit #1",
-        "Specific learning benefit #2", 
-        "Specific learning benefit #3"
-      ]
-    }
-  ]
-}
-
-IMPORTANT: 
-- Ensure all URLs are real and functional
-- Include at least 2 YouTube video resources if available
-- Mix different learning formats (video, interactive, text)
-- Make descriptions specific and valuable
-- Focus on reputable educational platforms`
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: 1500,
-      response_format: { type: "json_object" }
-    });
-
-    let result;
-    try {
-      result = JSON.parse(completion.choices[0]?.message?.content || "{}");
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      result = generateFallbackCuratedResources(subject);
-    }
-    
-    // Validate and ensure we have exactly 5 resources
-    if (!result.resources || !Array.isArray(result.resources)) {
-      result = generateFallbackCuratedResources(subject);
-    }
-
-    // Ensure we have exactly 5 resources
-    while (result.resources.length < 5) {
-      result.resources.push(...generateAdditionalResources(subject, result.resources.length));
-    }
-    result.resources = result.resources.slice(0, 5);
-
-    // Validate each resource has all required fields with proper URLs
-    const validatedResources = result.resources.map((resource, index) => ({
-      title: resource.title || `${subject} Learning Resource ${index + 1}`,
-      url: validateAndFixUrl(resource.url) || generateBackupUrl(subject, resource.title || ''),
-      description: resource.description || `Comprehensive resource for learning ${subject}`,
-      format: resource.format || (resource.url?.includes('youtube') ? 'Video Course' : 'Tutorial'),
-      benefits: Array.isArray(resource.benefits) ? resource.benefits : [
-        `Learn ${subject} fundamentals`,
-        `Practical examples and exercises`,
-        `Build real-world skills`
-      ]
-    }));
-
-    const finalResult = { resources: validatedResources };
-
     // Cache the result for 30 minutes
-    cache.set(cacheKey, finalResult);
-    return finalResult;
+    cache.set(cacheKey, result);
+    return result;
   } catch (error) {
     console.error('Resource curation error:', error);
     return generateFallbackCuratedResources(subject);
@@ -371,7 +466,7 @@ function generateFallbackCuratedResources(subject) {
     ]
   });
 
-  // Add subject-specific YouTube content
+  // Add subject-specific YouTube content with REAL URLs
   if (lowerSubject.includes('javascript') || lowerSubject.includes('js')) {
     resources.push({
       title: "JavaScript Full Course - FreeCodeCamp",
@@ -408,16 +503,41 @@ function generateFallbackCuratedResources(subject) {
         "Real-world application development"
       ]
     });
-  } else {
+  } else if (lowerSubject.includes('web development') || lowerSubject.includes('html') || lowerSubject.includes('css')) {
     resources.push({
-      title: `${subject} Tutorial - YouTube`,
-      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(subject + ' tutorial')}`,
-      description: `Discover comprehensive ${subject} tutorials from top educators and industry experts on YouTube.`,
+      title: "Web Development Full Course - FreeCodeCamp",
+      url: "https://www.youtube.com/watch?v=nu_pCVPKzTk",
+      description: "Complete web development course covering HTML, CSS, JavaScript, and modern web development practices.",
       format: "Video Course",
       benefits: [
-        "Multiple teaching styles and approaches",
-        "Visual and audio learning",
-        "Community discussions and comments"
+        "Complete web development curriculum",
+        "Hands-on projects and examples",
+        "Modern development practices"
+      ]
+    });
+  } else if (lowerSubject.includes('node')) {
+    resources.push({
+      title: "Node.js Tutorial - Traversy Media",
+      url: "https://www.youtube.com/watch?v=fBNz5xF-Kx4",
+      description: "Learn Node.js fundamentals including modules, npm, Express.js, and building APIs.",
+      format: "Video Course",
+      benefits: [
+        "Complete Node.js fundamentals",
+        "Build real APIs and applications",
+        "Modern Node.js best practices"
+      ]
+    });
+  } else {
+    // For other subjects, use educational platform search instead of fake YouTube URLs
+    resources.push({
+      title: `${subject} Video Tutorials - Khan Academy`,
+      url: `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(subject)}`,
+      description: `Discover comprehensive ${subject} video tutorials and interactive lessons from Khan Academy.`,
+      format: "Video Course",
+      benefits: [
+        "High-quality educational videos",
+        "Interactive learning exercises",
+        "Progress tracking and assessments"
       ]
     });
   }
