@@ -116,5 +116,122 @@ export const apiClient = {
       throw new Error('Failed to delete resources');
     }
     return response.json();
+  },
+
+  // Meeting Rooms API
+  async createMeetingRoom(data: Record<string, unknown>) {
+    const response = await fetch(`${API_BASE_URL}/meeting-rooms/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to create meeting room');
+    }
+    return response.json();
+  },
+
+  async joinMeetingRoom(data: Record<string, unknown>) {
+    const response = await fetch(`${API_BASE_URL}/meeting-rooms/join`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to join meeting room');
+    }
+    return response.json();
+  },
+
+  async getMeetingRoom(roomId: string) {
+    const response = await fetch(`${API_BASE_URL}/meeting-rooms/${roomId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch meeting room');
+    }
+    return response.json();
+  },
+
+  async getUserMeetingRooms(userId: string) {
+    const response = await fetch(`${API_BASE_URL}/meeting-rooms/user/${userId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch user meeting rooms');
+    }
+    return response.json();
+  },
+
+  async leaveMeetingRoom(roomId: string, participantId: string) {
+    const response = await fetch(`${API_BASE_URL}/meeting-rooms/leave`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ roomId, participantId }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to leave meeting room');
+    }
+    return response.json();
+  },
+
+  async endMeetingRoom(roomId: string, participantId: string) {
+    const response = await fetch(`${API_BASE_URL}/meeting-rooms/end`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ roomId, participantId }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to end meeting room');
+    }
+    return response.json();
+  },
+
+  async generateMeetingSummary(roomId: string, transcript?: string, additionalNotes?: string) {
+    const response = await fetch(`${API_BASE_URL}/meeting-rooms/summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ roomId, transcript, additionalNotes }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to generate meeting summary');
+    }
+    return response.json();
+  },
+
+  async sendChatMessage(roomId: string, message: string, participantId: string, participantName: string) {
+    const response = await fetch(`${API_BASE_URL}/meeting-rooms/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ roomId, message, participantId, participantName }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to send chat message');
+    }
+    return response.json();
   }
 }; 

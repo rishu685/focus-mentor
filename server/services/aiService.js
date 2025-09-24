@@ -785,5 +785,91 @@ async function generatePlan(subject, userId, examDate) {
   }
 }
 
+// Generate AI meeting summary
+async function generateMeetingSummary(meetingContent) {
+  try {
+    const prompt = `
+    You are an AI assistant specialized in analyzing meeting content and generating comprehensive, professional meeting summaries. 
+
+    Analyze the following meeting content and generate a structured summary:
+
+    ${meetingContent}
+
+    Please provide a JSON response with the following structure:
+    {
+      "keyPoints": ["List of 5-7 most important points discussed"],
+      "actionItems": ["List of specific action items and tasks assigned"],
+      "decisions": ["List of decisions made during the meeting"],
+      "nextSteps": ["List of next steps and follow-up actions"],
+      "topics": ["List of main topics/subjects discussed"],
+      "fullSummary": "A comprehensive 2-3 paragraph summary of the entire meeting",
+      "insights": "AI insights about the meeting dynamics, participation, and outcomes"
+    }
+
+    Guidelines:
+    - Be concise but comprehensive
+    - Focus on actionable items and key outcomes
+    - Maintain professional tone
+    - Include specific details when available
+    - If certain categories are empty, provide empty arrays
+    - Ensure all content is relevant and accurate to the meeting discussion
+    `;
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional meeting analyst AI. Generate structured, actionable meeting summaries in valid JSON format."
+        },
+        {
+          role: "user", 
+          content: prompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 2000
+    });
+
+    const summaryText = response.choices[0].message.content.trim();
+    
+    // Parse JSON response
+    let summary;
+    try {
+      // Remove any markdown code blocks if present
+      const cleanedText = summaryText.replace(/```json\s*|\s*```/g, '');
+      summary = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error('Failed to parse summary JSON:', parseError);
+      // Fallback to basic structure
+      summary = {
+        keyPoints: [],
+        actionItems: [],
+        decisions: [],
+        nextSteps: [],
+        topics: [],
+        fullSummary: summaryText,
+        insights: "Meeting content analyzed successfully."
+      };
+    }
+
+    return summary;
+
+  } catch (error) {
+    console.error('Error generating meeting summary:', error);
+    
+    // Return fallback summary
+    return {
+      keyPoints: ["Meeting content was analyzed"],
+      actionItems: [],
+      decisions: [],
+      nextSteps: [],
+      topics: [],
+      fullSummary: "Meeting summary could not be generated due to technical issues. Please review the meeting content manually.",
+      insights: "Technical error occurred during analysis."
+    };
+  }
+}
+
 // Export the functions and rate limiter
-export { aiRateLimiter, searchTavily, curateResources, generatePlan }; 
+export { aiRateLimiter, searchTavily, curateResources, generatePlan, generateMeetingSummary }; 

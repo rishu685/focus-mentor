@@ -1,15 +1,19 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import { aiRateLimiter } from './services/aiService.js';
 import dotenv from 'dotenv';
 import curateResourcesRouter from './routes/curateResources.js';
 import generatePlanRouter from './routes/generatePlan.js';
 import pdfChatRouter from './routes/pdfChat.js';
+import meetingRoomsRouter from './routes/meetingRooms.js';
 import rateLimit from 'express-rate-limit';
 import { mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
+import MeetingRoom from './models/meetingRoom.js';
 // Load environment variables
 dotenv.config();
 
@@ -21,6 +25,19 @@ if (!existsSync(uploadsDir)) {
 }
 
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "https://mind-mentor-pearl.vercel.app",
+      "https://mind-mentor.kartiklabhshetwar.me", 
+      "http://localhost:3000",
+      "https://www.mind-mentor.ink",
+      "https://mind-mentor.ink",
+    ],
+    methods: ["GET", "POST"]
+  }
+});
 const port = process.env.PORT || 8000;
 
 // Trust proxy - required for rate limiting behind reverse proxies
@@ -85,6 +102,103 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use('/generate-plan', generatePlanRouter);
 app.use('/curate-resources', curateResourcesRouter);
 app.use('/pdf', pdfChatRouter);
+app.use('/meeting-rooms', meetingRoomsRouter);
+
+// Socket.io for real-time meeting communication
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // Join meeting room
+  socket.on('join-room', async (data) => {
+    const { roomId, participantId, participantName } = data;
+    
+    try {
+      const room = await MeetingRoom.findByRoomId(roomId);
+      if (room) {
+        socket.join(roomId);
+        socket.to(roomId).emit('participant-joined', {
+          participantId,
+          participantName
+        });
+        
+        console.log(`${participantName} joined room ${roomId}`);
+      }
+    } catch (error) {
+      console.error('Error joining room:', error);
+    }
+  });
+
+  // Leave meeting room
+  socket.on('leave-room', (data) => {
+    const { roomId, participantId, participantName } = data;
+    socket.leave(roomId);
+    socket.to(roomId).emit('participant-left', {
+      participantId,
+      participantName
+    });
+    console.log(`${participantName} left room ${roomId}`);
+  });
+
+  // WebRTC signaling
+  socket.on('webrtc-signal', (data) => {
+    const { roomId, targetParticipantId, signal } = data;
+    socket.to(roomId).emit('webrtc-signal', {
+      fromParticipantId: socket.id,
+      signal
+    });
+  });
+
+  // Chat messages
+  socket.on('chat-message', async (data) => {
+    const { roomId, message, participantId, participantName } = data;
+    
+    try {
+      const room = await MeetingRoom.findByRoomId(roomId);
+      if (room && room.settings.allowChat) {
+        const chatMessage = {
+          id: Date.now().toString(),
+          participantId,
+          participantName,
+          message,
+          timestamp: new Date(),
+          type: 'text'
+        };
+        
+        room.chatMessages.push(chatMessage);
+        await room.save();
+        
+        io.to(roomId).emit('chat-message', chatMessage);
+      }
+    } catch (error) {
+      console.error('Error sending chat message:', error);
+    }
+  });
+
+  // Participant updates (audio/video toggle)
+  socket.on('participant-update', (data) => {
+    const { roomId, participantId, audioEnabled, videoEnabled, screenSharing } = data;
+    socket.to(roomId).emit('participant-update', {
+      participantId,
+      audioEnabled,
+      videoEnabled,
+      screenSharing
+    });
+  });
+
+  // Screen sharing
+  socket.on('screen-share', (data) => {
+    const { roomId, participantId, isSharing } = data;
+    socket.to(roomId).emit('screen-share', {
+      participantId,
+      isSharing
+    });
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -92,6 +206,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-app.listen(port, '0.0.0.0', () => {
+server.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on port ${port}`);
+  console.log('Socket.io enabled for real-time communication');
 });
