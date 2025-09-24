@@ -32,5 +32,8 @@ export const config = {
     "/analytics",
     "/settings",
     "/profile",
+    "/meeting",
+    "/notes",
+    "/pdf",
   ],
 }; 
