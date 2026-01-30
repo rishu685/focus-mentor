@@ -1,8 +1,8 @@
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 // Meeting Room TypeScript Interface
 export interface IMeetingRoom extends Document {
-  _id: string;
+  _id: mongoose.Types.ObjectId;
   roomId: string;
   title: string;
   description?: string;

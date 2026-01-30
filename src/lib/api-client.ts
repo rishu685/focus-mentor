@@ -1,8 +1,9 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use frontend API routes instead of direct backend calls
+const API_BASE_URL = '';
 
 export const apiClient = {
   async getCuratedResources(userId: string) {
-    const url = `${API_BASE_URL}/curate-resources/${userId}`;
+    const url = `/api/curate-resources/${userId}`;
     
     const response = await fetch(url, {
       headers: {
@@ -16,7 +17,7 @@ export const apiClient = {
   },
 
   async createCuratedResources(userId: string, subject: string) {
-    const response = await fetch(`${API_BASE_URL}/curate-resources`, {
+    const response = await fetch(`/api/curate-resources`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -43,12 +44,30 @@ export const apiClient = {
     return data;
   },
 
-  async getStudyPlan(userId: string) {
-    const response = await fetch(`${API_BASE_URL}/generate-plan/${userId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  async getStudyPlan(userId: string, forceRefresh = false) {
+    const timestamp = Date.now();
+    const randomParam = Math.random();
+    const url = `/api/study-plan/${userId}?t=${timestamp}&r=${randomParam}&nocache=true`;
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'If-None-Match': '*',
+      'If-Modified-Since': 'Thu, 01 Jan 1970 00:00:00 GMT'
+    };
+    
+    if (forceRefresh) {
+      // Add more aggressive headers for force refresh
+      Object.assign(headers, {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-Force-Refresh': 'true',
+        'X-Cache-Bust': timestamp.toString()
+      });
+    }
+    
+    const response = await fetch(url, { headers });
     if (!response.ok) {
       throw new Error('Failed to fetch study plan');
     }
@@ -84,10 +103,14 @@ export const apiClient = {
   },
 
   async deleteStudyPlan(planId: string) {
-    const response = await fetch(`${API_BASE_URL}/generate-plan/${planId}`, {
+    const timestamp = Date.now();
+    const response = await fetch(`/api/study-plan/delete/${planId}?t=${timestamp}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
     });
 

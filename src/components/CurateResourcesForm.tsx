@@ -28,15 +28,24 @@ const CurateResourcesForm: React.FC<CurateResourcesFormProps> = ({ userId, onRes
     try {
       const response = await apiClient.createCuratedResources(userId, subject);
       
-      if (response.error === 'RESOURCE_EXISTS') {
+      // Handle successful response (both new and existing resources)
+      if (response.success) {
+        setSuccess(true);
+        onResourcesGenerated(response.resources);
+        setSubject('');
+        
+        // Show appropriate message
+        if (response.isExisting) {
+          // Could show a toast message here if needed
+          console.log('Loaded existing resources for:', subject);
+        }
+      } else if (response.error === 'RESOURCE_EXISTS') {
+        // This shouldn't happen anymore, but kept for backward compatibility
         setError('Resources for this subject already exist. Please check the existing resources.');
         return;
+      } else {
+        throw new Error(response.message || 'Failed to create resources');
       }
-      
-      // Handle successful response
-      setSuccess(true);
-      onResourcesGenerated(response.resources);
-      setSubject('');
     } catch (error: unknown) {
       console.error('Error creating resources:', error);
       if (error instanceof Error) {

@@ -1,0 +1,18 @@
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server"
+  status = 200
+
+# Handle Next.js client-side routing  
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

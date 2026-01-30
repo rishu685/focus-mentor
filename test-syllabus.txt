@@ -1,0 +1,29 @@
+Computer Science Department - CS101 Introduction to Programming
+
+Course Description:
+This course introduces students to fundamental programming concepts using Python. Students will learn about variables, data types, control structures, functions, and basic algorithms.
+
+Learning Objectives:
+- Understand basic programming concepts
+- Write simple Python programs
+- Debug and test code
+- Apply problem-solving techniques
+
+Topics Covered:
+Week 1-2: Variables and Data Types
+Week 3-4: Control Structures (if/else, loops)
+Week 5-6: Functions and Modules
+Week 7-8: Lists and Dictionaries
+Week 9-10: File I/O and Error Handling
+Week 11-12: Object-Oriented Programming Basics
+
+Assessment:
+- Assignments: 40%
+- Midterm Exam: 25%
+- Final Project: 35%
+
+Required Textbook:
+Python Programming: An Introduction to Computer Science by John Zelle
+
+Prerequisites:
+None - this is an introductory course suitable for beginners.

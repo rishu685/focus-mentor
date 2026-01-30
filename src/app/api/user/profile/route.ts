@@ -4,6 +4,8 @@ import { connectMongoDB } from "@/lib/mongodb";
 import User from "@/models/user";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 // Define expected request body type
 interface UpdateProfileRequest {
   name: string;

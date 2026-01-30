@@ -1,0 +1,560 @@
+(node:45249) [MONGOOSE] Warning: Duplicate schema index on {"roomId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running on port 8000
+Socket.io enabled for real-time communication
+Connected to MongoDB
+Error generating university resources: TypeError: topic.toLowerCase is not a function
+    at file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:1009:13
+    at Array.filter (<anonymous>)
+    at methods.<computed> (/Users/apple/Desktop/mind-mentor/server/node_modules/mongoose/lib/types/array/methods/index.js:1054:24)
+    at generateUniversityResources (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:1008:37)
+    at file:///Users/apple/Desktop/mind-mentor/server/routes/curateResources.js:233:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Error in syllabus-aware resource curation: Error: Failed to generate university-specific resources
+    at generateUniversityResources (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:1108:11)
+    at file:///Users/apple/Desktop/mind-mentor/server/routes/curateResources.js:233:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Error generating university resources: TypeError: topic.toLowerCase is not a function
+    at file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:1009:13
+    at Array.filter (<anonymous>)
+    at methods.<computed> (/Users/apple/Desktop/mind-mentor/server/node_modules/mongoose/lib/types/array/methods/index.js:1054:24)
+    at generateUniversityResources (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:1008:37)
+    at file:///Users/apple/Desktop/mind-mentor/server/routes/curateResources.js:233:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Error in syllabus-aware resource curation: Error: Failed to generate university-specific resources
+    at generateUniversityResources (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:1108:11)
+    at file:///Users/apple/Desktop/mind-mentor/server/routes/curateResources.js:233:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Error analyzing syllabus: BadRequestError: 400 {"error":{"message":"Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.","type":"invalid_request_error","code":"json_validate_failed","failed_generation":"{\n  18 (Strict Mode)\nAdopts strict typing for functional \ncomponents, ensuring consistency \nand reducing runtime errors. \nComprehensive testing and \ndebugging capabilities facilitate \nidentifying and resolving issues \nswiftly. Strict Mode enforces a \npredictable, stable, and maintainable \ncodebase, adhering to React best \npractices.\n\nAPI Endpoints \nAPI Endpoints Overview\nBelow are the API endpoints \navailable in the Focus Mentor \nplatform:\n1\nUser Management\nUser Registration - POST /api/v1/auth/register\nUser Login - POST /api/v1/auth/login\nUser Profile - GET /api/v1/auth/profile\n2\nStudy Planning\nStudy Plan - GET /api/v1/study-plan\nStudy Plan Creation - POST /api/v1/study-plan\nStudy Plan Update - PATCH /api/v1/study-plan\n3\nMeeting Rooms\nCreate Meeting Room - POST /api/v1/meeting-rooms\nJoin Meeting Room - POST /api/v1/meeting-rooms/join\nMeeting Room Details - GET /api/v1/meeting-rooms/:id\n\nJSON Response:}"}}
+    at APIError.generate (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/error.mjs:36:20)
+    at Groq.makeStatusError (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/core.mjs:256:25)
+    at Groq.makeRequest (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/core.mjs:299:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async analyzeSyllabus (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:895:24)
+    at async file:///Users/apple/Desktop/mind-mentor/server/routes/syllabus.js:71:22 {
+  status: 400,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cache-control': 'private, max-age=0, no-store, no-cache, must-revalidate',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '9a788e0f09658371-BOM',
+    connection: 'keep-alive',
+    'content-length': '1152',
+    'content-type': 'application/json',
+    date: 'Tue, 02 Dec 2025 05:51:53 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=v9KA2f78mAOAL7kpw58Ybs6r9AKNyk9XCiIRCVg8TyU-1764654712.1623666-1.0.1.1-1_24Z4h_l1T_iduZ2ZTBOvV82ZYaSTKS08dfdHG68fuxwBCDUmYZ27K.Zz0KT1jHK.vJiVn7Q4qR0bXLvIgSc4WMAe31eUx.I1OyW7mtgeevdxxhgymAKCZq.LeuZgYL; HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Tue, 02 Dec 2025 06:21:53 GMT',
+    'strict-transport-security': 'max-age=2592000',
+    vary: 'Origin',
+    via: '1.1 google',
+    'x-groq-region': 'bom',
+    'x-ratelimit-limit-requests': '1000',
+    'x-ratelimit-limit-tokens': '12000',
+    'x-ratelimit-remaining-requests': '998',
+    'x-ratelimit-remaining-tokens': '11249',
+    'x-ratelimit-reset-requests': '2m52.8s',
+    'x-ratelimit-reset-tokens': '3.755s',
+    'x-request-id': 'req_01kbesw1cdek2svkwmjhx42zrz'
+  },
+  error: {
+    error: {
+      message: "Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.",
+      type: 'invalid_request_error',
+      code: 'json_validate_failed',
+      failed_generation: '{\n' +
+        '  18 (Strict Mode)\n' +
+        'Adopts strict typing for functional \n' +
+        'components, ensuring consistency \n' +
+        'and reducing runtime errors. \n' +
+        'Comprehensive testing and \n' +
+        'debugging capabilities facilitate \n' +
+        'identifying and resolving issues \n' +
+        'swiftly. Strict Mode enforces a \n' +
+        'predictable, stable, and maintainable \n' +
+        'codebase, adhering to React best \n' +
+        'practices.\n' +
+        '\n' +
+        'API Endpoints \n' +
+        'API Endpoints Overview\n' +
+        'Below are the API endpoints \n' +
+        'available in the Focus Mentor \n' +
+        'platform:\n' +
+        '1\n' +
+        'User Management\n' +
+        'User Registration - POST /api/v1/auth/register\n' +
+        'User Login - POST /api/v1/auth/login\n' +
+        'User Profile - GET /api/v1/auth/profile\n' +
+        '2\n' +
+        'Study Planning\n' +
+        'Study Plan - GET /api/v1/study-plan\n' +
+        'Study Plan Creation - POST /api/v1/study-plan\n' +
+        'Study Plan Update - PATCH /api/v1/study-plan\n' +
+        '3\n' +
+        'Meeting Rooms\n' +
+        'Create Meeting Room - POST /api/v1/meeting-rooms\n' +
+        'Join Meeting Room - POST /api/v1/meeting-rooms/join\n' +
+        'Meeting Room Details - GET /api/v1/meeting-rooms/:id\n' +
+        '\n' +
+        'JSON Response:}'
+    }
+  }
+}
+Error uploading syllabus: Error: Failed to analyze syllabus
+    at analyzeSyllabus (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:938:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///Users/apple/Desktop/mind-mentor/server/routes/syllabus.js:71:22
+Error analyzing syllabus: BadRequestError: 400 {"error":{"message":"Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.","type":"invalid_request_error","code":"json_validate_failed","failed_generation":"{\n  18\nProduction-ready React library \nensuring seamless integration with \nNode.js, MongoDB, and other \ndependencies. Supports \nconcurrent rendering, automatic \nbatching, and Suspense for \nasynchronous data fetching.\nReact Query\nData fetching and caching library \nproviding a simple, efficient solution \nfor managing global state. Supports \nbackground syncing, optimistic \nupdates, and retry mechanisms for \nrobust data handling.\nZustand\nState management library providing \na simple, scalable solution for \nmanaging local and global state. \nEnables easy integration with React \nQuery and other libraries for a \nseamless development experience.\nShadcn UI\nCustomisable, accessible component \nlibrary built on top of Tailwind CSS. \nProvides a wide range of pre-designed \ncomponents for rapid UI development, \nmaintaining visual coherence and \nconsistency across the platform.\n\nBackend Architecture\nNode.js 18\nProduction-ready Node.js environment \nensuring seamless integration with \nMongoDB, Express.js, and other \ndependencies. Supports \nasynchronous I/O, clustering, and \nworker threads for robust \nperformance and scalability.\nExpress.js 4\nFast, flexible, and modular Node.js \nweb framework for building robust \nAPIs. Supports routing, \nmiddleware, and template engines \nfor efficient development.\nMongoose 6\nODM (Object Data Modeling) library \nfor MongoDB, providing a \nstraightforward, efficient solution \nfor interacting with the database. \nSupports schema-based data modeling, \nvalidation, and hooks for data \nprocessing.\nMongoDB 5\nScalable NoSQL database management \nsystem providing high performance, \nhigh availability, and ease of use. \nSupports document-based data \nstorage, indexing, and querying for \nefficient data retrieval.\nJWT-based Authentication (NextAuth.js)\nProvides a robust, scalable \nauthentication solution using JSON \nWeb Tokens (JWT). Supports \npasswordless login, email \nverification, and session \nmanagement for secure user \nauthentication.\n\nAI Integration\nGroq API\nProvides instant AI processing for \nintelligent study planning, \ndocument comprehension, and \nnatural language processing.\nTavily API\nEnables educational resource \ndiscovery, providing access to a vast \nlibrary of learning materials.\nLangChain + Transformers.js\nProvides document comprehension and \nnatural language processing \ncapabilities, enabling the platform \nto understand and generate human-\nlike text.\n\nReal-Time Communication\nSocket.io 4\nEnables real-time communication \nbetween clients and servers, \nsupporting signaling, chat, and \nvideo/audio conferencing.\nWebRTC\nProvides peer-to-peer (P2P) video, \naudio, and screen sharing \ncapabilities, enabling seamless \ncollaboration and communication.\n\nInfrastructure & DevOps\nDocker\nProvides containerization for \nefficient deployment and \nmanagement of the platform.\nPostHog\nEnables analytics and data \ntracking for the platform, \nproviding insights into user \nbehavior and platform performance.\nGitHub + CI/CD\nProvides version control and \nautomated deployment for the \nplatform, ensuring seamless \nintegration and delivery.\n\n{\n\"course_details\": {\n\"university\": \"AKTU University\",\n\"course_name\": \"Computer Science\",\n\"project_name\": \"Focus Mentor\",\n\"project_guide\": \"Dr Sanjeev Sanyal\",\n\"team_members\": [\n{\n\"name\": \"Rishabh Mishra\",\n\"role\": \"Backend Developer\"\n},\n{\n\"name\": \"Aarav Malik\",\n\"role\": \"QA & Testing Engineer\"\n},\n{\n\"name\": \"Vipin Nagar\",\n\"role\": \"Frontend Developer\"\n},\n{\n\"name\": \"Taha Ahmad\",\n\"role\": \"Research & Documentation\"\n}\n]\n},\n\"vision_and_objective\": {\n\"vision\": \"To provide students with a single intelligent assistant that enhances focus, improves time management, and personalises learning through artificial intelligence.\",\n\"objective\": \"To build an AI-powered productivity and learning platform that helps students plan their studies, maintain focus, collaborate online, and access quality educational content all within one integrated environment that eliminates the need for multiple disconnected tools.\"\n},\n\"system_architecture\": {\n\"layers\": [\n{\n\"name\": \"Frontend Layer\",\n\"technologies\": [\n\"Next.js (React-based) for UI & routing\",\n\"Tailwind CSS + Shadcn UI for styling\",\n\"Zustand + React Query for state management\"\n]\n},\n{\n\"name\": \"Backend Layer\",\n\"technologies\": [\n\"Node.js + Express.js APIs for data and logic\",\n\"MongoDB database with Mongoose ODM\",\n\"JWT-based authentication (NextAuth.js)\"\n]\n},\n{\n\"name\": \"AI Integration Layer\",\n\"technologies\": [\n\"Groq API for instant AI processing\",\n\"Tavily API for educational resource discovery\",\n\"LangChain + Transformers.js for document comprehension\"\n]\n},\n{\n\"name\": \"Real-Time Communication\",\n\"technologies\": [\n\"Socket.io for signaling and chat\",\n\"Webrtc for P2P video/audio and screen sharing\"\n]\n},\n{\n\"name\": \"Infrastructure & DevOps\",\n\"technologies\": [\n\"Docker for containerization\",\n\"PostHog for analytics\",\n\"GitHub + CI/CD for version control and deployment\"\n]\n}\n]\n},\n\"core_functionalities\": {\n\"core_features\": [\n\"AI Study Planner - Generates individualized study plans\",\n\"Meeting Rooms - Supports video and chat collaboration\",\n\"PDF Chat Assistant - Answers queries from uploaded PDFs\",\n\"Productivity Tools - Includes timer, analytics, and notes\"\n],\n\"technical_architecture\": {\n\"frontend\": \"Next.js + React for responsive UI\",\n\"backend\": \"Node.js + Mongoose for data management\",\n\"ai_components\": \"Groq API + Tavily API for intelligent processing\",\n\"database\": \"MongoDB for scalable data storage\"\n}\n},\n\"frontend_architecture\": {\n\"next_js\": \"Next.js 14 (App Router) for server-side rendering, static site generation, and optimised routing\",\n\"type_script\": \"TypeScript for robust type safety and maintainable code\",\n\"tailwind_css\": \"Tailwind CSS + Shadcn UI for utility-first CSS framework and customisable component library\",\n\"react\": \"React 18 for production-ready React library\",\n\"react_query\": \"React Query for data fetching and caching library\",\n\"zustand\": \"Zustand for state management library\",\n\"shadcn_ui\": \"Shadcn UI for customisable, accessible component library\"\n},\n\"backend_architecture\": {\n\"node_js\": \"Node.js 18 for production-ready Node.js environment\",\n\"express_js\": \"Express.js 4 for fast, flexible, and modular Node.js web framework\",\n\"mongoose\": \"Mongoose 6 for ODM (Object Data Modeling) library\",\n\"mongodb\": \"MongoDB 5 for scalable NoSQL database management system\",\n\"jwt_based_authentication\": \"JWT-based authentication (NextAuth.js) for robust, scalable authentication solution\"\n},\n\"ai_integration\": {\n\"groq_api\": \"Groq API for instant AI processing\",\n\"tavily_api\": \"Tavily API for educational resource discovery\",\n\"langchain_transformers_js\": \"LangChain + Transformers.js for document comprehension and natural language processing capabilities\"\n},\n\"real_time_communication\": {\n\"socket_io\": \"Socket.io 4 for real-time communication between clients and servers\",\n\"webrtc\": \"WebRTC for peer-to-peer (P2P) video, audio, and screen sharing capabilities\"\n},\n\"infrastructure_devops\": {\n\"docker\": \"Docker for containerization\",\n\"posthog\": \"PostHog for analytics and data tracking\",\n\"github_ci_cd\": \"GitHub + CI/CD for version control and automated deployment\"\n}\n}}"}}
+    at APIError.generate (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/error.mjs:36:20)
+    at Groq.makeStatusError (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/core.mjs:256:25)
+    at Groq.makeRequest (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/core.mjs:299:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async analyzeSyllabus (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:895:24)
+    at async file:///Users/apple/Desktop/mind-mentor/server/routes/syllabus.js:71:22 {
+  status: 400,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cache-control': 'private, max-age=0, no-store, no-cache, must-revalidate',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '9a788e3beae9ff68-BOM',
+    connection: 'keep-alive',
+    'content-type': 'application/json',
+    date: 'Tue, 02 Dec 2025 05:52:03 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=Xh6JVcUzWqSZTc_oncl.9D6UsCbIfHRnvtQC3msTakc-1764654719.3421621-1.0.1.1-7a.LdbV3qFQLQmhC6f.c4S3wbhwrMCuAvQEY7T3DZwaWcut8HlvQ_a9MCXnew_2_fTonHzpMDcegibnrNvWdUwJKAUPvOK_UhKHBxujYkNl4VagNXICVJZHJwRlYzVbg; HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Tue, 02 Dec 2025 06:22:03 GMT',
+    'strict-transport-security': 'max-age=2592000',
+    'transfer-encoding': 'chunked',
+    vary: 'Origin',
+    via: '1.1 google',
+    'x-groq-region': 'bom',
+    'x-ratelimit-limit-requests': '1000',
+    'x-ratelimit-limit-tokens': '12000',
+    'x-ratelimit-remaining-requests': '997',
+    'x-ratelimit-remaining-tokens': '11249',
+    'x-ratelimit-reset-requests': '4m19.2s',
+    'x-ratelimit-reset-tokens': '3.755s',
+    'x-request-id': 'req_01kbesw8csekd8rskpw65wzg99'
+  },
+  error: {
+    error: {
+      message: "Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.",
+      type: 'invalid_request_error',
+      code: 'json_validate_failed',
+      failed_generation: '{\n' +
+        '  18\n' +
+        'Production-ready React library \n' +
+        'ensuring seamless integration with \n' +
+        'Node.js, MongoDB, and other \n' +
+        'dependencies. Supports \n' +
+        'concurrent rendering, automatic \n' +
+        'batching, and Suspense for \n' +
+        'asynchronous data fetching.\n' +
+        'React Query\n' +
+        'Data fetching and caching library \n' +
+        'providing a simple, efficient solution \n' +
+        'for managing global state. Supports \n' +
+        'background syncing, optimistic \n' +
+        'updates, and retry mechanisms for \n' +
+        'robust data handling.\n' +
+        'Zustand\n' +
+        'State management library providing \n' +
+        'a simple, scalable solution for \n' +
+        'managing local and global state. \n' +
+        'Enables easy integration with React \n' +
+        'Query and other libraries for a \n' +
+        'seamless development experience.\n' +
+        'Shadcn UI\n' +
+        'Customisable, accessible component \n' +
+        'library built on top of Tailwind CSS. \n' +
+        'Provides a wide range of pre-designed \n' +
+        'components for rapid UI development, \n' +
+        'maintaining visual coherence and \n' +
+        'consistency across the platform.\n' +
+        '\n' +
+        'Backend Architecture\n' +
+        'Node.js 18\n' +
+        'Production-ready Node.js environment \n' +
+        'ensuring seamless integration with \n' +
+        'MongoDB, Express.js, and other \n' +
+        'dependencies. Supports \n' +
+        'asynchronous I/O, clustering, and \n' +
+        'worker threads for robust \n' +
+        'performance and scalability.\n' +
+        'Express.js 4\n' +
+        'Fast, flexible, and modular Node.js \n' +
+        'web framework for building robust \n' +
+        'APIs. Supports routing, \n' +
+        'middleware, and template engines \n' +
+        'for efficient development.\n' +
+        'Mongoose 6\n' +
+        'ODM (Object Data Modeling) library \n' +
+        'for MongoDB, providing a \n' +
+        'straightforward, efficient solution \n' +
+        'for interacting with the database. \n' +
+        'Supports schema-based data modeling, \n' +
+        'validation, and hooks for data \n' +
+        'processing.\n' +
+        'MongoDB 5\n' +
+        'Scalable NoSQL database management \n' +
+        'system providing high performance, \n' +
+        'high availability, and ease of use. \n' +
+        'Supports document-based data \n' +
+        'storage, indexing, and querying for \n' +
+        'efficient data retrieval.\n' +
+        'JWT-based Authentication (NextAuth.js)\n' +
+        'Provides a robust, scalable \n' +
+        'authentication solution using JSON \n' +
+        'Web Tokens (JWT). Supports \n' +
+        'passwordless login, email \n' +
+        'verification, and session \n' +
+        'management for secure user \n' +
+        'authentication.\n' +
+        '\n' +
+        'AI Integration\n' +
+        'Groq API\n' +
+        'Provides instant AI processing for \n' +
+        'intelligent study planning, \n' +
+        'document comprehension, and \n' +
+        'natural language processing.\n' +
+        'Tavily API\n' +
+        'Enables educational resource \n' +
+        'discovery, providing access to a vast \n' +
+        'library of learning materials.\n' +
+        'LangChain + Transformers.js\n' +
+        'Provides document comprehension and \n' +
+        'natural language processing \n' +
+        'capabilities, enabling the platform \n' +
+        'to understand and generate human-\n' +
+        'like text.\n' +
+        '\n' +
+        'Real-Time Communication\n' +
+        'Socket.io 4\n' +
+        'Enables real-time communication \n' +
+        'between clients and servers, \n' +
+        'supporting signaling, chat, and \n' +
+        'video/audio conferencing.\n' +
+        'WebRTC\n' +
+        'Provides peer-to-peer (P2P) video, \n' +
+        'audio, and screen sharing \n' +
+        'capabilities, enabling seamless \n' +
+        'collaboration and communication.\n' +
+        '\n' +
+        'Infrastructure & DevOps\n' +
+        'Docker\n' +
+        'Provides containerization for \n' +
+        'efficient deployment and \n' +
+        'management of the platform.\n' +
+        'PostHog\n' +
+        'Enables analytics and data \n' +
+        'tracking for the platform, \n' +
+        'providing insights into user \n' +
+        'behavior and platform performance.\n' +
+        'GitHub + CI/CD\n' +
+        'Provides version control and \n' +
+        'automated deployment for the \n' +
+        'platform, ensuring seamless \n' +
+        'integration and delivery.\n' +
+        '\n' +
+        '{\n' +
+        '"course_details": {\n' +
+        '"university": "AKTU University",\n' +
+        '"course_name": "Computer Science",\n' +
+        '"project_name": "Focus Mentor",\n' +
+        '"project_guide": "Dr Sanjeev Sanyal",\n' +
+        '"team_members": [\n' +
+        '{\n' +
+        '"name": "Rishabh Mishra",\n' +
+        '"role": "Backend Developer"\n' +
+        '},\n' +
+        '{\n' +
+        '"name": "Aarav Malik",\n' +
+        '"role": "QA & Testing Engineer"\n' +
+        '},\n' +
+        '{\n' +
+        '"name": "Vipin Nagar",\n' +
+        '"role": "Frontend Developer"\n' +
+        '},\n' +
+        '{\n' +
+        '"name": "Taha Ahmad",\n' +
+        '"role": "Research & Documentation"\n' +
+        '}\n' +
+        ']\n' +
+        '},\n' +
+        '"vision_and_objective": {\n' +
+        '"vision": "To provide students with a single intelligent assistant that enhances focus, improves time management, and personalises learning through artificial intelligence.",\n' +
+        '"objective": "To build an AI-powered productivity and learning platform that helps students plan their studies, maintain focus, collaborate online, and access quality educational content all within one integrated environment that eliminates the need for multiple disconnected tools."\n' +
+        '},\n' +
+        '"system_architecture": {\n' +
+        '"layers": [\n' +
+        '{\n' +
+        '"name": "Frontend Layer",\n' +
+        '"technologies": [\n' +
+        '"Next.js (React-based) for UI & routing",\n' +
+        '"Tailwind CSS + Shadcn UI for styling",\n' +
+        '"Zustand + React Query for state management"\n' +
+        ']\n' +
+        '},\n' +
+        '{\n' +
+        '"name": "Backend Layer",\n' +
+        '"technologies": [\n' +
+        '"Node.js + Express.js APIs for data and logic",\n' +
+        '"MongoDB database with Mongoose ODM",\n' +
+        '"JWT-based authentication (NextAuth.js)"\n' +
+        ']\n' +
+        '},\n' +
+        '{\n' +
+        '"name": "AI Integration Layer",\n' +
+        '"technologies": [\n' +
+        '"Groq API for instant AI processing",\n' +
+        '"Tavily API for educational resource discovery",\n' +
+        '"LangChain + Transformers.js for document comprehension"\n' +
+        ']\n' +
+        '},\n' +
+        '{\n' +
+        '"name": "Real-Time Communication",\n' +
+        '"technologies": [\n' +
+        '"Socket.io for signaling and chat",\n' +
+        '"Webrtc for P2P video/audio and screen sharing"\n' +
+        ']\n' +
+        '},\n' +
+        '{\n' +
+        '"name": "Infrastructure & DevOps",\n' +
+        '"technologies": [\n' +
+        '"Docker for containerization",\n' +
+        '"PostHog for analytics",\n' +
+        '"GitHub + CI/CD for version control and deployment"\n' +
+        ']\n' +
+        '}\n' +
+        ']\n' +
+        '},\n' +
+        '"core_functionalities": {\n' +
+        '"core_features": [\n' +
+        '"AI Study Planner - Generates individualized study plans",\n' +
+        '"Meeting Rooms - Supports video and chat collaboration",\n' +
+        '"PDF Chat Assistant - Answers queries from uploaded PDFs",\n' +
+        '"Productivity Tools - Includes timer, analytics, and notes"\n' +
+        '],\n' +
+        '"technical_architecture": {\n' +
+        '"frontend": "Next.js + React for responsive UI",\n' +
+        '"backend": "Node.js + Mongoose for data management",\n' +
+        '"ai_components": "Groq API + Tavily API for intelligent processing",\n' +
+        '"database": "MongoDB for scalable data storage"\n' +
+        '}\n' +
+        '},\n' +
+        '"frontend_architecture": {\n' +
+        '"next_js": "Next.js 14 (App Router) for server-side rendering, static site generation, and optimised routing",\n' +
+        '"type_script": "TypeScript for robust type safety and maintainable code",\n' +
+        '"tailwind_css": "Tailwind CSS + Shadcn UI for utility-first CSS framework and customisable component library",\n' +
+        '"react": "React 18 for production-ready React library",\n' +
+        '"react_query": "React Query for data fetching and caching library",\n' +
+        '"zustand": "Zustand for state management library",\n' +
+        '"shadcn_ui": "Shadcn UI for customisable, accessible component library"\n' +
+        '},\n' +
+        '"backend_architecture": {\n' +
+        '"node_js": "Node.js 18 for production-ready Node.js environment",\n' +
+        '"express_js": "Express.js 4 for fast, flexible, and modular Node.js web framework",\n' +
+        '"mongoose": "Mongoose 6 for ODM (Object Data Modeling) library",\n' +
+        '"mongodb": "MongoDB 5 for scalable NoSQL database management system",\n' +
+        '"jwt_based_authentication": "JWT-based authentication (NextAuth.js) for robust, scalable authentication solution"\n' +
+        '},\n' +
+        '"ai_integration": {\n' +
+        '"groq_api": "Groq API for instant AI processing",\n' +
+        '"tavily_api": "Tavily API for educational resource discovery",\n' +
+        '"langchain_transformers_js": "LangChain + Transformers.js for document comprehension and natural language processing capabilities"\n' +
+        '},\n' +
+        '"real_time_communication": {\n' +
+        '"socket_io": "Socket.io 4 for real-time communication between clients and servers",\n' +
+        '"webrtc": "WebRTC for peer-to-peer (P2P) video, audio, and screen sharing capabilities"\n' +
+        '},\n' +
+        '"infrastructure_devops": {\n' +
+        '"docker": "Docker for containerization",\n' +
+        '"posthog": "PostHog for analytics and data tracking",\n' +
+        '"github_ci_cd": "GitHub + CI/CD for version control and automated deployment"\n' +
+        '}\n' +
+        '}}'
+    }
+  }
+}
+Error uploading syllabus: Error: Failed to analyze syllabus
+    at analyzeSyllabus (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:938:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///Users/apple/Desktop/mind-mentor/server/routes/syllabus.js:71:22
+Error analyzing syllabus: BadRequestError: 400 {"error":{"message":"Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.","type":"invalid_request_error","code":"json_validate_failed","failed_generation":"{\n  18\nThe latest version of React provides \nseamless server-side rendering, \nimproved error handling, and \nenhanced performance optimisation.\nState Management\nZustand + React Query\nCombination of global and local \nstate management libraries. \nZustand enables efficient global \nstate management, while React Query \nhandles data fetching, caching, and \noptimisation. 500+ lines of code \nutilise these libraries for a robust, \nperformant, and scalable frontend.\n\nBackend Architecture\nNode.js 18\nModern JavaScript runtime \nenvironment for building \nserver-side applications. Offers \nimproved performance, \nenhanced security, and \nbetter support for modern \nJavaScript features.\nExpress.js 5\nFast, flexible, and modular \nframework for building web \napplications. Provides a \nlightweight, flexible, and \ncustomisable architecture for \nrapid development and \nintegration of microservices.\nMongoDB 6\nNoSQL document-based \ndatabase management \nsystem. Offers high \nperformance, scalability, \nand reliability for handling \nlarge volumes of data.\nMongoose ODM 7\nObject Data Modeling library \nfor MongoDB and Node.js. \nProvides an intuitive \ninterface for interacting with \nthe database, enabling \ndevelopers to define schemas, \nmodels, and documents in a \ntype-safe manner.\nAuthentication\nNextAuth.js 4\nComplete open-source \nauthentication solution for \nNext.js applications. Provides \nbuilt-in support for popular \nauth providers, including \nGoogle, GitHub, and Email/ \nPassword. Offers advanced \nsecurity features, such as \npasswordless login, and \ntwo-factor authentication.\n\nLearning Outcomes\nAfter completing this project, \nstudents will be able to:\n1. Design and develop a microservices \narchitecture for a scalable and \nrobust application\n2. Implement AI-powered features \nusing Groq API and Tavily API\n3. Develop a responsive and \ninteractive frontend using \nNext.js and React\n4. Utilise MongoDB and Mongoose \nfor data management and \nstorage\n5. Implement authentication and \nauthorisation using NextAuth.js\n\n{\n\"course_name\": \"Computer Science\",\n\"university\": \"AKTU\",\n\"project_name\": \"Focus Mentor\",\n\"project_description\": \"AI-Powered Platform for Enhanced Digital Learning\",\n\"team_members\": {\n\"Rishabh Mishra\": \"Backend Developer\",\n\"Aarav Malik\": \"QA & Testing Engineer\",\n\"Vipin Nagar\": \"Frontend Developer\",\n\"Taha Ahmad\": \"Research & Documentation\"\n},\n\"vision\": \"To provide students with a single intelligent assistant that enhances focus, improves time management, and personalises learning through artificial intelligence\",\n\"core_objective\": \"To build an AI-powered productivity and learning platform that helps students plan their studies, maintain focus, collaborate online, and access quality educational content\",\n\"system_architecture\": {\n\"frontend_layer\": {\n\"framework\": \"Next.js\",\n\"styling\": \"Tailwind CSS + Shadcn UI\",\n\"state_management\": \"Zustand + React Query\"\n},\n\"backend_layer\": {\n\"runtime_environment\": \"Node.js + Express.js\",\n\"database\": \"MongoDB\",\n\"authentication\": \"JWT-based authentication (NextAuth.js)\"\n},\n\"ai_integration_layer\": {\n\"api\": \"Groq API + Tavily API\",\n\"document_comprehension\": \"LangChain + Transformers.js\"\n},\n\"real_time_communication\": {\n\"signaling\": \"Socket.io\",\n\"video_audio_screen_sharing\": \"WebRTC\"\n},\n\"infrastructure_devops\": {\n\"containerization\": \"Docker\",\n\"analytics\": \"PostHog\"\n}\n},\n\"core_functionalities\": {\n\"ai_study_planner\": \"Generates individualized study plans\",\n\"meeting_rooms\": \"Supports video and chat collaboration\",\n\"pdf_chat_assistant\": \"Answers queries from uploaded PDFs\",\n\"productivity_tools\": \"Includes timer, analytics, and notes\"\n},\n\"technical_architecture\": {\n\"frontend\": \"Next.js + React\",\n\"backend\": \"Node.js + Mongoose\",\n\"ai_components\": \"Groq API + Tavily API\",\n\"database\": \"MongoDB\"\n},\n\"learning_outcomes\": [\n\"Design and develop a microservices architecture for a scalable and robust application\",\n\"Implement AI-powered features using Groq API and Tavily API\",\n\"Develop a responsive and interactive frontend using Next.js and React\",\n\"Utilise MongoDB and Mongoose for data management and storage\",\n\"Implement authentication and authorisation using NextAuth.js\"\n]\n}}"}}
+    at APIError.generate (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/error.mjs:36:20)
+    at Groq.makeStatusError (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/core.mjs:256:25)
+    at Groq.makeRequest (file:///Users/apple/Desktop/mind-mentor/server/node_modules/groq-sdk/core.mjs:299:30)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async analyzeSyllabus (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:895:24)
+    at async file:///Users/apple/Desktop/mind-mentor/server/routes/syllabus.js:71:22 {
+  status: 400,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cache-control': 'private, max-age=0, no-store, no-cache, must-revalidate',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '9a7895c0af4d47d3-BOM',
+    connection: 'keep-alive',
+    'content-type': 'application/json',
+    date: 'Tue, 02 Dec 2025 05:57:09 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=3HCc1zPfYH0ySPfTrL691DIiJJKo36lJpbmuOA_g6cw-1764655027.3055766-1.0.1.1-3rTJAqcPMav.wrFpRt2xiBFME02sj4OH9C.PTDPQks9CbZzmG825rkOdodpEE05KQg4VCDvKztQflJrcdd5oR48nA0u7fgUglw5m4SbVwLn33A_hFuIZQ_ECdUYg02a4; HttpOnly; Secure; Path=/; Domain=groq.com; Expires=Tue, 02 Dec 2025 06:27:09 GMT',
+    'strict-transport-security': 'max-age=2592000',
+    'transfer-encoding': 'chunked',
+    vary: 'Origin',
+    via: '1.1 google',
+    'x-groq-region': 'bom',
+    'x-ratelimit-limit-requests': '1000',
+    'x-ratelimit-limit-tokens': '12000',
+    'x-ratelimit-remaining-requests': '999',
+    'x-ratelimit-remaining-tokens': '11249',
+    'x-ratelimit-reset-requests': '1m26.4s',
+    'x-ratelimit-reset-tokens': '3.755s',
+    'x-request-id': 'req_01kbet5n4kewfs6kxq302jcf0k'
+  },
+  error: {
+    error: {
+      message: "Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.",
+      type: 'invalid_request_error',
+      code: 'json_validate_failed',
+      failed_generation: '{\n' +
+        '  18\n' +
+        'The latest version of React provides \n' +
+        'seamless server-side rendering, \n' +
+        'improved error handling, and \n' +
+        'enhanced performance optimisation.\n' +
+        'State Management\n' +
+        'Zustand + React Query\n' +
+        'Combination of global and local \n' +
+        'state management libraries. \n' +
+        'Zustand enables efficient global \n' +
+        'state management, while React Query \n' +
+        'handles data fetching, caching, and \n' +
+        'optimisation. 500+ lines of code \n' +
+        'utilise these libraries for a robust, \n' +
+        'performant, and scalable frontend.\n' +
+        '\n' +
+        'Backend Architecture\n' +
+        'Node.js 18\n' +
+        'Modern JavaScript runtime \n' +
+        'environment for building \n' +
+        'server-side applications. Offers \n' +
+        'improved performance, \n' +
+        'enhanced security, and \n' +
+        'better support for modern \n' +
+        'JavaScript features.\n' +
+        'Express.js 5\n' +
+        'Fast, flexible, and modular \n' +
+        'framework for building web \n' +
+        'applications. Provides a \n' +
+        'lightweight, flexible, and \n' +
+        'customisable architecture for \n' +
+        'rapid development and \n' +
+        'integration of microservices.\n' +
+        'MongoDB 6\n' +
+        'NoSQL document-based \n' +
+        'database management \n' +
+        'system. Offers high \n' +
+        'performance, scalability, \n' +
+        'and reliability for handling \n' +
+        'large volumes of data.\n' +
+        'Mongoose ODM 7\n' +
+        'Object Data Modeling library \n' +
+        'for MongoDB and Node.js. \n' +
+        'Provides an intuitive \n' +
+        'interface for interacting with \n' +
+        'the database, enabling \n' +
+        'developers to define schemas, \n' +
+        'models, and documents in a \n' +
+        'type-safe manner.\n' +
+        'Authentication\n' +
+        'NextAuth.js 4\n' +
+        'Complete open-source \n' +
+        'authentication solution for \n' +
+        'Next.js applications. Provides \n' +
+        'built-in support for popular \n' +
+        'auth providers, including \n' +
+        'Google, GitHub, and Email/ \n' +
+        'Password. Offers advanced \n' +
+        'security features, such as \n' +
+        'passwordless login, and \n' +
+        'two-factor authentication.\n' +
+        '\n' +
+        'Learning Outcomes\n' +
+        'After completing this project, \n' +
+        'students will be able to:\n' +
+        '1. Design and develop a microservices \n' +
+        'architecture for a scalable and \n' +
+        'robust application\n' +
+        '2. Implement AI-powered features \n' +
+        'using Groq API and Tavily API\n' +
+        '3. Develop a responsive and \n' +
+        'interactive frontend using \n' +
+        'Next.js and React\n' +
+        '4. Utilise MongoDB and Mongoose \n' +
+        'for data management and \n' +
+        'storage\n' +
+        '5. Implement authentication and \n' +
+        'authorisation using NextAuth.js\n' +
+        '\n' +
+        '{\n' +
+        '"course_name": "Computer Science",\n' +
+        '"university": "AKTU",\n' +
+        '"project_name": "Focus Mentor",\n' +
+        '"project_description": "AI-Powered Platform for Enhanced Digital Learning",\n' +
+        '"team_members": {\n' +
+        '"Rishabh Mishra": "Backend Developer",\n' +
+        '"Aarav Malik": "QA & Testing Engineer",\n' +
+        '"Vipin Nagar": "Frontend Developer",\n' +
+        '"Taha Ahmad": "Research & Documentation"\n' +
+        '},\n' +
+        '"vision": "To provide students with a single intelligent assistant that enhances focus, improves time management, and personalises learning through artificial intelligence",\n' +
+        '"core_objective": "To build an AI-powered productivity and learning platform that helps students plan their studies, maintain focus, collaborate online, and access quality educational content",\n' +
+        '"system_architecture": {\n' +
+        '"frontend_layer": {\n' +
+        '"framework": "Next.js",\n' +
+        '"styling": "Tailwind CSS + Shadcn UI",\n' +
+        '"state_management": "Zustand + React Query"\n' +
+        '},\n' +
+        '"backend_layer": {\n' +
+        '"runtime_environment": "Node.js + Express.js",\n' +
+        '"database": "MongoDB",\n' +
+        '"authentication": "JWT-based authentication (NextAuth.js)"\n' +
+        '},\n' +
+        '"ai_integration_layer": {\n' +
+        '"api": "Groq API + Tavily API",\n' +
+        '"document_comprehension": "LangChain + Transformers.js"\n' +
+        '},\n' +
+        '"real_time_communication": {\n' +
+        '"signaling": "Socket.io",\n' +
+        '"video_audio_screen_sharing": "WebRTC"\n' +
+        '},\n' +
+        '"infrastructure_devops": {\n' +
+        '"containerization": "Docker",\n' +
+        '"analytics": "PostHog"\n' +
+        '}\n' +
+        '},\n' +
+        '"core_functionalities": {\n' +
+        '"ai_study_planner": "Generates individualized study plans",\n' +
+        '"meeting_rooms": "Supports video and chat collaboration",\n' +
+        '"pdf_chat_assistant": "Answers queries from uploaded PDFs",\n' +
+        '"productivity_tools": "Includes timer, analytics, and notes"\n' +
+        '},\n' +
+        '"technical_architecture": {\n' +
+        '"frontend": "Next.js + React",\n' +
+        '"backend": "Node.js + Mongoose",\n' +
+        '"ai_components": "Groq API + Tavily API",\n' +
+        '"database": "MongoDB"\n' +
+        '},\n' +
+        '"learning_outcomes": [\n' +
+        '"Design and develop a microservices architecture for a scalable and robust application",\n' +
+        '"Implement AI-powered features using Groq API and Tavily API",\n' +
+        '"Develop a responsive and interactive frontend using Next.js and React",\n' +
+        '"Utilise MongoDB and Mongoose for data management and storage",\n' +
+        '"Implement authentication and authorisation using NextAuth.js"\n' +
+        ']\n' +
+        '}}'
+    }
+  }
+}
+Error uploading syllabus: Error: Failed to analyze syllabus
+    at analyzeSyllabus (file:///Users/apple/Desktop/mind-mentor/server/services/aiService.js:938:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///Users/apple/Desktop/mind-mentor/server/routes/syllabus.js:71:22

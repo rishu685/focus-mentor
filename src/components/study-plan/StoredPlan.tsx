@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { apiClient } from "@/lib/api-client";
 
 export interface Task {
   day: string;
@@ -36,7 +35,7 @@ export interface StudyPlan {
 
 interface StoredPlanProps {
   plan: StudyPlan;
-  onDelete: (planId: string) => void;
+  onDelete: (planId: string) => Promise<void>;
 }
 
 export function StoredPlan({ plan, onDelete }: StoredPlanProps) {
@@ -44,15 +43,12 @@ export function StoredPlan({ plan, onDelete }: StoredPlanProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
+    if (isDeleting) return; // Prevent double-clicks
+    
     try {
       setIsDeleting(true);
-      await apiClient.deleteStudyPlan(plan._id);
-      onDelete(plan._id);
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Study plan deleted successfully",
-      });
+      // Let parent component handle the actual deletion
+      await onDelete(plan._id);
     } catch {
       toast({
         variant: "error",

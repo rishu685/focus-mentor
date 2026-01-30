@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const backendFormData = new FormData();
     backendFormData.append('pdf', file);
 
-    const apiUrl = process.env.API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
     
     const response = await fetch(`${apiUrl}/pdf/upload`, {
       method: 'POST',
