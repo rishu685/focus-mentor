@@ -169,6 +169,23 @@ async function ensureUploadsDirectory() {
 /**
  * Process PDF file or buffer and create embeddings
  */
+// Simple text extraction function for syllabus processing
+export async function extractTextFromPdf(filePath) {
+  try {
+    const buffer = await fs.readFile(filePath);
+    const data = await pdfParse(buffer, PDF_OPTIONS);
+
+    if (!data || !data.text) {
+      throw new Error('PDF parsing resulted in no text content');
+    }
+
+    return data.text.trim();
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    throw new Error('Failed to extract text from PDF');
+  }
+}
+
 export async function processPdf(input) {
   try {
     let buffer;

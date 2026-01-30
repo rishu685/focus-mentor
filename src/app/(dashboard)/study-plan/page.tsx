@@ -20,11 +20,29 @@ export default function StudyPlanPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
-  const fetchPlans = useCallback(async () => {
+  const fetchPlans = useCallback(async (force = false) => {
     if (!session?.user?.id) return;
     try {
       setLoading(true);
-      const data = await apiClient.getStudyPlan(session.user.id);
+      console.log('Fetching plans for user:', session.user.id, 'force:', force);
+      
+      // Clear state first if force refresh
+      if (force) {
+        setStoredPlans([]);
+        
+        // Clear all browser caches
+        if ('caches' in window) {
+          await caches.keys().then(cacheNames => {
+            return Promise.all(
+              cacheNames.map(cacheName => caches.delete(cacheName))
+            );
+          });
+        }
+      }
+      
+      const data = await apiClient.getStudyPlan(session.user.id, force);
+      console.log('Fetched plans data:', data);
+      
       if (data.error) {
         console.error("API returned error:", data.error);
         toast({
@@ -41,6 +59,8 @@ export default function StudyPlanPage() {
         const sortedPlans = data.plans.sort((a: StudyPlan, b: StudyPlan) => 
           b._id.localeCompare(a._id)
         );
+        console.log('Setting plans in state:', sortedPlans.length, 'plans');
+        console.log('Plan IDs:', sortedPlans.map(p => p._id));
         setStoredPlans(sortedPlans);
       } else {
         console.error("Invalid plans data structure:", data);
@@ -60,36 +80,64 @@ export default function StudyPlanPage() {
   }, [session?.user?.id, toast]);
 
   useEffect(() => {
-    fetchPlans();
+    fetchPlans(false);
   }, [fetchPlans]);
 
   const handlePlanGenerated = () => {
-    // Refresh the plans list after a short delay
+    // Force refresh the plans list after a short delay
     setTimeout(() => {
-      fetchPlans();
+      fetchPlans(true);
     }, 500);
   };
 
   const handlePlanDelete = async (planId: string) => {
+    console.log('Deleting plan with ID:', planId);
+    
+    // Prevent multiple simultaneous deletions
+    if (storedPlans.find(plan => plan._id === planId)?.isDeleting) {
+      return;
+    }
+    
     try {
+      // Immediately mark as deleting and remove from local state for instant feedback
+      setStoredPlans(prev => prev.filter(plan => plan._id !== planId));
+      
       const response = await apiClient.deleteStudyPlan(planId);
+      console.log('Delete response:', response);
+      
       if (response.success) {
-        // Update the local state to remove the deactivated plan
-        setStoredPlans(plans => plans.filter(plan => plan._id !== planId));
         toast({
-          variant: "success",
+          variant: "success", 
           title: "Success",
-          description: response.message || "Study plan deactivated successfully."
+          description: response.message || "Study plan deleted successfully."
         });
+        
+        // Force clear all caches and reload page
+        console.log('Force clearing all caches and reloading');
+        
+        // Clear browser cache
+        if ('caches' in window) {
+          caches.keys().then(cacheNames => {
+            cacheNames.forEach(cacheName => {
+              caches.delete(cacheName);
+            });
+          });
+        }
+        
+        // Force page reload to ensure fresh data
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+        
       } else {
-        throw new Error(response.message || 'Failed to deactivate plan');
+        throw new Error(response.message || 'Failed to delete plan');
       }
     } catch (error: unknown) {
-      console.error("Error deactivating plan:", error);
+      console.error("Error deleting plan:", error);
       toast({
         variant: "error",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to deactivate study plan. Please try again."
+        title: "Error", 
+        description: error instanceof Error ? error.message : "Failed to delete study plan. Please try again."
       });
     }
   };

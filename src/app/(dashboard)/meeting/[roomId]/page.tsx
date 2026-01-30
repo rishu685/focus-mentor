@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,26 @@ export default function MeetingRoomPage() {
   const [meetingStartTime, setMeetingStartTime] = useState<Date | null>(null);
   const [meetingTranscript, setMeetingTranscript] = useState<string>('');
 
+  const fetchMeetingRoom = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/meeting-rooms/${roomId}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setMeetingRoom(data);
+        setChatMessages(data.chatMessages || []);
+      } else {
+        setError(data.error || 'Failed to fetch meeting room');
+      }
+    } catch (err) {
+      setError('Failed to connect to meeting room');
+      console.error('Error fetching meeting room:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [roomId]);
+
   useEffect(() => {
     if (roomId) {
       fetchMeetingRoom();
@@ -77,7 +97,7 @@ export default function MeetingRoomPage() {
         localStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [roomId]);
+  }, [roomId, fetchMeetingRoom]);
 
   // Request camera and microphone permissions
   const requestMediaPermissions = async () => {
@@ -136,25 +156,7 @@ export default function MeetingRoomPage() {
     }
   };
 
-  const fetchMeetingRoom = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`http://localhost:8000/meeting-rooms/${roomId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setMeetingRoom(data.data);
-        setChatMessages(data.data.chatMessages || []);
-      } else {
-        setError(data.message || 'Failed to fetch meeting room');
-      }
-    } catch (err) {
-      setError('Failed to connect to meeting room');
-      console.error('Error fetching meeting room:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Function moved above to fix hoisting issue
 
   const joinMeeting = async () => {
     if (!participantName.trim()) {
@@ -170,7 +172,7 @@ export default function MeetingRoomPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/meeting-rooms/join', {
+      const response = await fetch('/api/meeting-rooms/join', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +205,7 @@ export default function MeetingRoomPage() {
 
   const leaveMeeting = async () => {
     try {
-      const response = await fetch('http://localhost:8000/meeting-rooms/leave', {
+      const response = await fetch('/api/meeting-rooms/leave', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -228,7 +230,7 @@ export default function MeetingRoomPage() {
     if (!newMessage.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:8000/meeting-rooms/chat', {
+      const response = await fetch(`${backendUrl}/api/meeting-rooms/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -278,7 +280,7 @@ export default function MeetingRoomPage() {
         endedAt: new Date().toISOString()
       };
 
-      const response = await fetch('http://localhost:8000/meeting-rooms/summary', {
+      const response = await fetch(`${backendUrl}/api/meeting-rooms/summary`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

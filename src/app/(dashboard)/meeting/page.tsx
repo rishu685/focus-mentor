@@ -23,8 +23,8 @@ export default function MeetingPage() {
     setIsCreating(true);
     
     try {
-      // Create meeting room in backend
-      const response = await fetch('http://localhost:8000/meeting-rooms/create', {
+      // Create meeting room via frontend API
+      const response = await fetch('/api/meeting-rooms/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

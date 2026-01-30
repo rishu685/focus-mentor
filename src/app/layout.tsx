@@ -21,6 +21,7 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
   title: "Focus Mentor - Your AI Study Assistant",
   description: "Personalize your learning with AI-powered study plans and resources.",
   openGraph: {

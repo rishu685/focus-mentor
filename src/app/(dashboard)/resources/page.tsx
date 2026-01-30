@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import ResourceCurator from '@/components/ResourceCurator';
+import EnhancedResourceCurator from '@/components/EnhancedResourceCurator';
 import { StoredResources } from "@/components/resources/StoredResources";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CuratedResource } from "@/components/resources/StoredResources";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "next-auth/react";
@@ -69,6 +71,11 @@ export default function ResourcesPage() {
     fetchResources();
   }, [fetchResources]);
 
+  // Debug effect to monitor storedResources changes
+  useEffect(() => {
+    console.log("storedResources state changed:", storedResources);
+  }, [storedResources]);
+
   const handleResourceDelete = (resourceId: string) => {
     setStoredResources(resources => resources.filter(resource => resource._id !== resourceId));
     toast({
@@ -81,14 +88,18 @@ export default function ResourcesPage() {
   const handleCreateResources = async (subject: string) => {
     if (!session?.user?.id) return;
     try {
+      console.log("Creating resources for subject:", subject);
       await apiClient.createCuratedResources(session.user.id, subject);
+      console.log("Resources created successfully, calling fetchResources...");
       toast({
         variant: "success",
         title: "Success",
         description: "Resources created successfully."
       });
+      console.log("Resources created successfully, calling fetchResources...");
       // Refresh resources after creation
-      fetchResources();
+      await fetchResources();
+      console.log("fetchResources completed after creation, storedResources state:", storedResources);
     } catch (error: unknown) {
       console.error('Error creating resources:', error);
       
@@ -159,9 +170,26 @@ export default function ResourcesPage() {
           <span className="text-xs sm:text-sm text-gray-600">Find and manage learning resources</span>
         </div>
       </div>
-      <div className="w-full max-w-10xl mx-auto">
-        <ResourceCurator onCreateResources={handleCreateResources} />
-      </div>
+      
+      <Tabs defaultValue="enhanced" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="enhanced">Smart Curator (Syllabus-Aware)</TabsTrigger>
+          <TabsTrigger value="basic">Basic Curator</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="enhanced" className="mt-6">
+          <EnhancedResourceCurator />
+        </TabsContent>
+        
+        <TabsContent value="basic" className="mt-6">
+          <div className="w-full max-w-10xl mx-auto">
+            <ResourceCurator 
+              onCreateResources={handleCreateResources} 
+              userId={session?.user?.id || ''} 
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Stored Resources Section */}
       {loading ? (

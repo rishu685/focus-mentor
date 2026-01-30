@@ -35,9 +35,40 @@ export default function StudyBuddyPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [buddyPersonality, setBuddyPersonality] = useState<'encouraging' | 'challenging' | 'patient' | 'analytical'>('encouraging');
   const [conversationStarted, setConversationStarted] = useState(false);
+  const [syllabusInfo, setSyllabusInfo] = useState<{ university?: string; course?: string; available: boolean }>({ available: false });
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check for active syllabus on component mount
+  useEffect(() => {
+    const checkSyllabus = async () => {
+      if (!session?.user?.id) return;
+      
+      try {
+        const response = await fetch(`/api/syllabus/active/${session.user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.university) {
+            setSyllabusInfo({ 
+              university: data.university, 
+              course: data.course, 
+              available: true 
+            });
+          } else {
+            setSyllabusInfo({ available: false });
+          }
+        } else {
+          setSyllabusInfo({ available: false });
+        }
+      } catch (error) {
+        console.error('Error checking syllabus:', error);
+        setSyllabusInfo({ available: false });
+      }
+    };
+    
+    checkSyllabus();
+  }, [session]);
 
   const initializeStudyBuddy = useCallback(async () => {
     const welcomeMessage: ChatMessage = {
@@ -93,12 +124,14 @@ What subject would you like to study today?`,
     setIsTyping(true);
 
     try {
-      // Get AI response using Groq with study context
-      const response = await fetch('/api/ai/study-buddy', {
+      // Get AI response using enhanced study buddy with syllabus context
+      const response = await fetch('/api/study-buddy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: inputMessage,
+          userId: session?.user?.id || 'anonymous',
+          prioritizeSyllabus: syllabusInfo.available,
           context: studyContext,
           personality: buddyPersonality,
           chatHistory: messages.slice(-10), // Last 10 messages for context
@@ -115,12 +148,17 @@ What subject would you like to study today?`,
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: aiResponse.content,
+        content: aiResponse.response || aiResponse.content,
         timestamp: new Date(),
         messageType: aiResponse.messageType || 'explanation'
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Show syllabus context if available
+      if (aiResponse.syllabusUsed) {
+        console.log('Response used syllabus context:', aiResponse.context);
+      }
 
       // Update study context based on conversation
       if (aiResponse.updatedContext) {
@@ -374,6 +412,51 @@ What subject would you like to study today?`,
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Syllabus Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-blue-500" />
+                Syllabus Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {syllabusInfo.available ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium">Active Syllabus</span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <strong>{syllabusInfo.university}</strong><br />
+                    {syllabusInfo.course}
+                  </div>
+                  <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                    🎯 Responses are personalized to your curriculum
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-orange-600">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span className="text-sm font-medium">No Syllabus</span>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    Upload your syllabus to get personalized study assistance aligned with your university curriculum
+                  </p>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => window.location.href = '/syllabus'}
+                  >
+                    Upload Syllabus
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Study Stats */}
           <Card>
             <CardHeader>
@@ -400,7 +483,38 @@ What subject would you like to study today?`,
             </CardContent>
           </Card>
 
-          {/* AI Capabilities */}
+          {/* Syllabus Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-blue-500" />
+                Syllabus Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-blue-800">University Context Active</span>
+                  </div>
+                  <p className="text-xs text-blue-600">
+                    Upload your syllabus to get personalized study assistance aligned with your university curriculum
+                  </p>
+                </div>
+                <div className="text-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => window.location.href = '/syllabus'}
+                  >
+                    Upload Syllabus
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>          {/* AI Capabilities */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">

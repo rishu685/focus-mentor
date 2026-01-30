@@ -1,6 +1,7 @@
 import express from 'express';
-import { searchTavily, curateResources } from '../services/aiService.js';
+import { searchTavily, curateResources, generateUniversityResources, curateStudyResources } from '../services/aiService.js';
 import CuratedResource from '../models/curatedResource.js';
+import { Syllabus } from '../models/syllabus.js';
 
 const router = express.Router();
 
@@ -8,8 +9,10 @@ const router = express.Router();
 router.get('/:userId', async (req, res) => { 
   try {
     const { userId } = req.params;
+    console.log('Backend: GET request for userId:', userId);
     
     if (!userId) {
+      console.log('Backend: No userId provided');
       return res.status(400).json({
         success: false,
         error: 'userId is required'
@@ -18,6 +21,18 @@ router.get('/:userId', async (req, res) => {
 
     const resources = await CuratedResource.find({ userId })
       .sort({ createdAt: -1 });
+    
+    console.log('Backend: Database query for userId:', userId);
+    console.log('Backend: MongoDB connection state:', require('mongoose').connection.readyState);
+    console.log('Backend: Found resources count:', resources.length);
+    if (resources.length > 0) {
+      console.log('Backend: Resources sample:', resources.map(r => ({ 
+        id: r._id, 
+        topic: r.topic, 
+        resourceCount: r.resources?.length || 0,
+        userId: r.userId 
+      })));
+    }
     
     res.json({ 
       success: true, 
@@ -55,15 +70,50 @@ router.post('/', async (req, res) => {
     });
 
     if (existingResources) {
-      return res.status(400).json({
-        success: false,
-        error: 'RESOURCE_EXISTS',
-        message: `You already have curated resources for "${subject}". Please check your existing resources.`
+      return res.json({
+        success: true,
+        resource: existingResources, // Return the full resource object
+        message: `Returning existing resources for "${subject}".`,
+        syllabusContext: existingResources.syllabusContext || { used: false },
+        isExisting: true
       });
     }
 
-    // If no existing resources, generate new ones
-    const searchData = await searchTavily(subject);
+    // Check if user has active syllabus for context-aware resource generation
+    const activeSyllabus = await Syllabus.findOne({ 
+      userId, 
+      isActive: true 
+    });
+
+    let searchData;
+    let syllabusContext = null;
+
+    if (activeSyllabus) {
+      // Use syllabus-aware resource generation
+      const relevantSubject = activeSyllabus.subjects.find(s => 
+        s.name.toLowerCase().includes(subject.toLowerCase())
+      );
+      
+      const syllabusTopics = relevantSubject ? 
+        relevantSubject.topics : 
+        activeSyllabus.aiAnalysis.keyTopics;
+
+      searchData = await generateUniversityResources(
+        subject,
+        activeSyllabus.university,
+        activeSyllabus.course,
+        syllabusTopics
+      );
+
+      syllabusContext = {
+        university: activeSyllabus.university,
+        course: activeSyllabus.course,
+        relevantTopics: syllabusTopics
+      };
+    } else {
+      // Fallback to regular search
+      searchData = await searchTavily(subject);
+    }
     
     if (!searchData || !searchData.results) {
       return res.status(500).json({
@@ -92,20 +142,24 @@ router.post('/', async (req, res) => {
       benefits: resource.benefits || ['Resource for learning ' + subject]
     }));
 
-    // Create new resource document
+    // Create new resource document with syllabus context
     const newResource = new CuratedResource({
       userId,
       topic: normalizedSubject, // Use topic instead of subject
       resources: validatedResources,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      syllabusContext // Add syllabus context if available
     });
 
     const savedResource = await newResource.save();
 
     return res.json({
       success: true,
-      message: 'Resources curated successfully',
-      resources: savedResource
+      message: syllabusContext ? 
+        `Resources curated successfully for ${syllabusContext.university} ${syllabusContext.course} curriculum` :
+        'Resources curated successfully',
+      resource: savedResource, // Return the single created resource
+      syllabusContext
     });
 
   } catch (error) {
@@ -150,6 +204,78 @@ router.delete('/:resourceId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete resource'
+    });
+  }
+});
+
+// Syllabus-prioritized resource curation
+router.post('/curate', async (req, res) => {
+  try {
+    const { subject, userId, difficulty = 'intermediate', type = 'mixed', prioritizeSyllabus = false } = req.body;
+
+    if (!subject?.trim() || !userId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Subject and userId are required' 
+      });
+    }
+
+    // Get active syllabus for context
+    let syllabusContext = null;
+    const activeSyllabus = await Syllabus.findOne({
+      userId,
+      isActive: true
+    });
+
+    if (activeSyllabus) {
+      syllabusContext = {
+        university: activeSyllabus.university,
+        course: activeSyllabus.course,
+        semester: activeSyllabus.semester,
+        subjects: activeSyllabus.subjects || [],
+        syllabusContent: activeSyllabus.extractedText
+      };
+    }
+
+    // Enhanced subject query when prioritizing syllabus
+    let enhancedSubject = subject.trim();
+    if (prioritizeSyllabus && syllabusContext) {
+      enhancedSubject = `${subject} for ${syllabusContext.university} ${syllabusContext.course} curriculum`;
+    }
+
+    // Use university-specific resource generation if syllabus is available
+    let resources;
+    if (syllabusContext && prioritizeSyllabus) {
+      resources = await generateUniversityResources(enhancedSubject, syllabusContext, {
+        difficulty,
+        type,
+        count: 8
+      });
+    } else {
+      // Fallback to regular resource curation
+      const searchData = await searchTavily(enhancedSubject, 10);
+      resources = await curateResources(searchData, enhancedSubject);
+    }
+
+    res.json({
+      success: true,
+      resources: resources.resources || resources,
+      syllabusContext: syllabusContext ? {
+        university: syllabusContext.university,
+        course: syllabusContext.course,
+        used: true
+      } : { used: false },
+      message: syllabusContext ? 
+        `Resources curated specifically for your ${syllabusContext.university} ${syllabusContext.course} curriculum` :
+        'Resources curated successfully (upload syllabus for personalized results)'
+    });
+
+  } catch (error) {
+    console.error('Error in syllabus-aware resource curation:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to curate resources',
+      details: error.message
     });
   }
 });

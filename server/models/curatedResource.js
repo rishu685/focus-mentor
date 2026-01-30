@@ -34,6 +34,11 @@ const curatedResourceSchema = new mongoose.Schema({
     required: true,
   },
   resources: [resourceSchema],
+  syllabusContext: {
+    university: String,
+    course: String,
+    relevantTopics: [String]
+  },
   lastUpdated: {
     type: Date,
     default: Date.now,

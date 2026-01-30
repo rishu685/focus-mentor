@@ -27,6 +27,39 @@ export interface Resource {
   addedAt: Date;
 }
 
+export interface SyllabusSubject {
+  name: string;
+  topics: string[];
+  weightage?: string;
+  description?: string;
+}
+
+export interface SyllabusAnalysis {
+  overview: string;
+  keyTopics: string[];
+  difficulty: string;
+  recommendations: string[];
+  estimatedHours: number;
+}
+
+export interface Syllabus {
+  _id: string;
+  userId: string;
+  university: string;
+  course: string;
+  semester?: string;
+  year?: string;
+  fileName: string;
+  originalName: string;
+  filePath: string;
+  extractedText: string;
+  subjects: SyllabusSubject[];
+  aiAnalysis: SyllabusAnalysis;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -38,6 +71,9 @@ export interface UserProfile {
     avatar?: string;
     bio?: string;
     timezone?: string;
+    university?: string;
+    course?: string;
+    currentSyllabus?: string;
     preferences: {
       emailNotifications: boolean;
       studyReminders: boolean;

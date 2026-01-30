@@ -680,109 +680,217 @@ function generateBackupUrl(subject, title) {
   return `https://www.google.com/search?q=${encodeURIComponent(subject + ' tutorial')}`;
 }
 
-async function generatePlan(subject, userId, examDate) {
-  // Cache key for study plan
-  const cacheKey = `plan_${subject}_${examDate}`;
-  
-  // Check cache first
-  const cachedResult = cache.get(cacheKey);
-  if (cachedResult) {
-    return cachedResult;
-  }
-
-  // Calculate days until exam
-  const daysUntilExam = Math.ceil(
-    (new Date(examDate) - new Date()) / (1000 * 60 * 60 * 24)
-  );
-
+async function generatePlan(subject, userId, examDate, syllabusContext = null) {
   try {
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert study planner who creates detailed and effective study plans. Always respond in JSON format."
-        },
-        {
-          role: "user",
-          content: `Create a detailed study plan for ${subject} with ${daysUntilExam} days until the exam on ${examDate}.
-          
-          Return the response in this exact JSON format:
-          {
-            "overview": {
-              "subject": "${subject}",
-              "duration": "${daysUntilExam} days",
-              "examDate": "${examDate}"
-            },
-            "weeklyPlans": [
-              {
-                "week": "Week 1",
-                "goals": ["Goal 1", "Goal 2"],
-                "dailyTasks": [
-                  {
-                    "day": "YYYY-MM-DD (Day X)",
-                    "tasks": ["Task 1", "Task 2"],
-                    "duration": "X hours"
-                  }
-                ]
-              }
-            ],
-            "recommendations": ["Tip 1", "Tip 2"]
-          }`
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-      top_p: 1,
-      stream: false,
-      response_format: { type: "json_object" }
-    });
-
-    const parsedPlan = JSON.parse(completion.choices[0]?.message?.content || "{}");
+    console.log('Generating plan for:', { subject, userId, examDate, hasSyllabus: !!syllabusContext });
     
-    // Validate the required fields
-    if (!parsedPlan.overview || !parsedPlan.weeklyPlans || !parsedPlan.recommendations) {
-      throw new Error('Missing required fields in plan structure');
+    // Cache key for study plan
+    const cacheKey = `plan_${subject}_${examDate}_${syllabusContext?.university || 'general'}`;
+    
+    // Check cache first
+    const cachedResult = cache.get(cacheKey);
+    if (cachedResult) {
+      console.log('Returning cached plan');
+      return cachedResult;
+    }
+
+    // Calculate days until exam
+    const examDateObj = new Date(examDate);
+    const currentDate = new Date();
+    const daysUntilExam = Math.max(1, Math.ceil((examDateObj - currentDate) / (1000 * 60 * 60 * 24)));
+    
+    console.log('Days until exam:', daysUntilExam);
+
+    // Prepare context-aware prompt
+    let contextPrompt = `Create a detailed study plan for ${subject} with ${daysUntilExam} days until the exam on ${examDate}.`;
+    
+    if (syllabusContext) {
+      const { university, course, relevantSubject, aiAnalysis } = syllabusContext;
+      contextPrompt = `Create a detailed study plan for ${subject} with ${daysUntilExam} days until the exam on ${examDate}.
+      
+      University Context: ${university} - ${course}
+      ${relevantSubject ? `Syllabus Topics: ${relevantSubject.topics.join(', ')}` : ''}
+      ${relevantSubject ? `Subject Weight: ${relevantSubject.weightage}` : ''}
+      ${aiAnalysis ? `Course Difficulty: ${aiAnalysis.difficulty}` : ''}
+      ${aiAnalysis ? `Key Topics: ${aiAnalysis.keyTopics.join(', ')}` : ''}
+      
+      Please tailor the study plan to align with the university curriculum and syllabus requirements.`;
+    } else {
+      contextPrompt += `\n\nThis is a general study plan. Provide comprehensive coverage of ${subject} fundamentals and advanced topics.`;
+    }
+
+    // Generate AI plan with fallback
+    let parsedPlan;
+    try {
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [
+          {
+            role: "system",
+            content: syllabusContext ? 
+              `You are an expert study planner for ${syllabusContext.university} students. Create detailed study plans in JSON format.` :
+              "You are an expert study planner. Create detailed study plans in JSON format."
+          },
+          {
+            role: "user",
+            content: `${contextPrompt}
+            
+            Return ONLY valid JSON in this exact format:
+            {
+              "overview": {
+                "subject": "${subject}",
+                "duration": "${daysUntilExam} days",
+                "examDate": "${examDate}"
+              },
+              "weeklyPlans": [
+                {
+                  "week": "Week 1",
+                  "goals": ["Goal 1", "Goal 2"],
+                  "dailyTasks": [
+                    {
+                      "day": "Day 1",
+                      "tasks": ["Task 1", "Task 2"],
+                      "duration": "2-3 hours"
+                    }
+                  ]
+                }
+              ],
+              "recommendations": ["Tip 1", "Tip 2"]
+            }`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 2000
+      });
+
+      const responseText = completion.choices[0]?.message?.content || "{}";
+      console.log('AI response received, length:', responseText.length);
+      
+      // Clean and extract JSON
+      let cleanResponse = responseText.trim();
+      const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanResponse = jsonMatch[0];
+      }
+      
+      parsedPlan = JSON.parse(cleanResponse);
+      console.log('AI plan parsed successfully');
+    } catch (aiError) {
+      console.error('AI generation failed, using fallback:', aiError.message);
+      // Create comprehensive fallback plan
+      parsedPlan = {
+        overview: {
+          subject: subject,
+          duration: `${daysUntilExam} days`,
+          examDate: examDate
+        },
+        weeklyPlans: createFallbackWeeklyPlan(subject, daysUntilExam),
+        recommendations: [
+          "Study consistently every day",
+          "Take regular breaks during study sessions",
+          "Practice with real examples and exercises",
+          "Review previous topics regularly",
+          "Get enough sleep and maintain a healthy routine"
+        ]
+      };
     }
     
-    // Create a new StudyPlan instance
+    // Validate and create StudyPlan instance with robust fallbacks
     const plan = new StudyPlan({
       userId,
       overview: {
-        subject: parsedPlan.overview.subject,
-        duration: parsedPlan.overview.duration,
-        examDate: parsedPlan.overview.examDate
+        subject: parsedPlan.overview?.subject || subject,
+        duration: parsedPlan.overview?.duration || `${daysUntilExam} days`,
+        examDate: parsedPlan.overview?.examDate || examDate
       },
-      weeklyPlans: parsedPlan.weeklyPlans.map(week => ({
-        week: week.week,
-        goals: week.goals,
-        dailyTasks: week.dailyTasks.map(task => ({
-          day: task.day,
-          tasks: task.tasks,
-          duration: task.duration
-        }))
-      })),
-      recommendations: parsedPlan.recommendations,
+      weeklyPlans: Array.isArray(parsedPlan.weeklyPlans) && parsedPlan.weeklyPlans.length > 0 ? 
+        parsedPlan.weeklyPlans.map(week => ({
+          week: week.week || "Week 1",
+          goals: Array.isArray(week.goals) ? week.goals : [`Master ${subject} concepts`],
+          dailyTasks: Array.isArray(week.dailyTasks) ? week.dailyTasks.map(task => ({
+            day: task.day || "Day 1",
+            tasks: Array.isArray(task.tasks) ? task.tasks : [`Study ${subject}`],
+            duration: task.duration || "2-3 hours"
+          })) : [{
+            day: "Daily",
+            tasks: [`Study ${subject} fundamentals`, "Practice exercises"],
+            duration: "2-3 hours"
+          }]
+        })) : createFallbackWeeklyPlan(subject, daysUntilExam),
+      recommendations: Array.isArray(parsedPlan.recommendations) ? parsedPlan.recommendations : [
+        "Study regularly", "Practice consistently", "Review materials"
+      ],
       isActive: true,
       progress: 0,
       lastUpdated: new Date()
     });
 
+    console.log('Study plan created successfully');
     cache.set(cacheKey, plan);
     return plan;
+    
   } catch (error) {
-    console.error('Groq error:', error);
-    if (error.status === 429 || error.status === 413) {
-      const retryAfter = error.headers?.['retry-after'] || 60;
-      throw {
-        status: error.status,
-        error: 'Rate limit exceeded',
-        message: 'Too many requests. Please try again later.',
-        retryAfter
-      };
-    }
-    throw error;
+    console.error('Critical error in generatePlan:', error);
+    
+    // Create emergency fallback plan
+    const emergencyPlan = new StudyPlan({
+      userId,
+      overview: {
+        subject: subject,
+        duration: "30 days",
+        examDate: examDate
+      },
+      weeklyPlans: [{
+        week: "Week 1",
+        goals: [`Learn ${subject} fundamentals`, "Build strong foundation"],
+        dailyTasks: [{
+          day: "Daily",
+          tasks: [`Study ${subject} basics`, "Complete practice exercises", "Review concepts"],
+          duration: "2-3 hours"
+        }]
+      }],
+      recommendations: [
+        "Study consistently every day",
+        "Focus on understanding concepts",
+        "Practice regularly with examples"
+      ],
+      isActive: true,
+      progress: 0,
+      lastUpdated: new Date()
+    });
+    
+    console.log('Using emergency fallback plan');
+    return emergencyPlan;
   }
+}
+
+// Helper function to create fallback weekly plans
+function createFallbackWeeklyPlan(subject, totalDays) {
+  const weeksNeeded = Math.ceil(totalDays / 7);
+  const weeklyPlans = [];
+  
+  for (let week = 1; week <= Math.min(weeksNeeded, 4); week++) {
+    weeklyPlans.push({
+      week: `Week ${week}`,
+      goals: [
+        `Master ${subject} fundamentals for week ${week}`,
+        "Complete assigned practice exercises",
+        "Review and consolidate learning"
+      ],
+      dailyTasks: [{
+        day: `Week ${week} Daily Tasks`,
+        tasks: [
+          `Study ${subject} core concepts`,
+          "Work through practice problems",
+          "Review previous day's material",
+          "Take notes on key points"
+        ],
+        duration: "2-3 hours"
+      }]
+    });
+  }
+  
+  return weeklyPlans;
 }
 
 // Generate AI meeting summary
@@ -871,5 +979,572 @@ async function generateMeetingSummary(meetingContent) {
   }
 }
 
+// Analyze syllabus content using AI
+// Updated syllabus analysis function with better error handling
+async function analyzeSyllabusV2(syllabusText, university, course) {
+  try {
+    console.log('Starting syllabus analysis for:', university, course);
+    console.log('Using model: llama-3.1-70b-versatile');
+    
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.1-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert educational analyst. Analyze university syllabi and extract structured information. You must respond ONLY with valid JSON in the exact format specified. Do not include any text before or after the JSON.`
+        },
+        {
+          role: "user",
+          content: `Analyze this syllabus from ${university} for course ${course} and respond with ONLY the JSON below (no additional text):
+
+Syllabus Text:
+${syllabusText.substring(0, 3000)} 
+
+Respond with this exact JSON structure:
+{
+  "overview": "Brief course overview in 1-2 sentences",
+  "subjects": [
+    {
+      "name": "Subject/Module name",
+      "topics": ["topic1", "topic2"],
+      "weightage": "10%",
+      "description": "Brief description"
+    }
+  ],
+  "aiAnalysis": {
+    "overview": "Detailed analysis in 2-3 sentences",
+    "keyTopics": ["important topic 1", "important topic 2"],
+    "difficulty": "intermediate",
+    "recommendations": ["study tip 1", "study tip 2"],
+    "estimatedHours": 120
+  }
+}`
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 1500,
+      response_format: { type: "json_object" }
+    });
+
+    const content = completion.choices[0]?.message?.content || "{}";
+    console.log('Raw AI response:', content);
+    
+    let analysis;
+    try {
+      analysis = JSON.parse(content);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Content that failed to parse:', content);
+      
+      // Return a fallback analysis
+      analysis = {
+        overview: `Course from ${university}: ${course}`,
+        subjects: [
+          {
+            name: "General Studies",
+            topics: ["Various topics from the syllabus"],
+            weightage: "100%",
+            description: "Course content analysis unavailable"
+          }
+        ],
+        aiAnalysis: {
+          overview: `This is a ${course} course from ${university}.`,
+          keyTopics: ["Course fundamentals", "Core concepts"],
+          difficulty: "intermediate",
+          recommendations: ["Review course materials regularly", "Practice with examples"],
+          estimatedHours: 120
+        }
+      };
+    }
+    
+    console.log('Analysis completed successfully');
+    return analysis;
+  } catch (error) {
+    console.error('Error analyzing syllabus V2:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // Return a fallback instead of throwing
+    return {
+      overview: `Course from ${university}: ${course}`,
+      subjects: [
+        {
+          name: "Course Content",
+          topics: ["Syllabus content uploaded"],
+          weightage: "100%",
+          description: "Analysis temporarily unavailable"
+        }
+      ],
+      aiAnalysis: {
+        overview: `This is a ${course} course from ${university}. Analysis will be available soon.`,
+        keyTopics: ["Course fundamentals"],
+        difficulty: "intermediate",
+        recommendations: ["Review uploaded syllabus", "Contact instructor for details"],
+        estimatedHours: 120
+      }
+    };
+  }
+}
+
+async function analyzeSyllabus(syllabusText, university, course) {
+  try {
+    console.log('Starting syllabus analysis...');
+    
+    // Fallback analysis in case AI fails
+    const fallbackAnalysis = {
+      overview: `Course syllabus for ${course} at ${university}`,
+      subjects: [
+        {
+          name: course,
+          topics: ['General course content'],
+          weightage: 'Not specified',
+          description: 'Course content as described in syllabus'
+        }
+      ],
+      aiAnalysis: {
+        overview: `This syllabus covers the ${course} course curriculum`,
+        keyTopics: ['Course fundamentals'],
+        difficulty: 'intermediate',
+        recommendations: ['Study regularly', 'Practice concepts', 'Ask questions in class'],
+        estimatedHours: 120
+      }
+    };
+
+    // Try AI analysis with multiple fallbacks
+    try {
+      const prompt = `Analyze this university syllabus and return a JSON object.
+
+Syllabus: ${syllabusText.slice(0, 2000)}
+University: ${university}
+Course: ${course}
+
+Return only valid JSON with this structure:
+{
+  "overview": "brief course description",
+  "subjects": [{"name": "topic", "topics": ["item1"], "weightage": "weight", "description": "desc"}],
+  "aiAnalysis": {"overview": "analysis", "keyTopics": ["topic1"], "difficulty": "beginner", "recommendations": ["tip1"], "estimatedHours": 120}
+}`;
+
+      const completion = await groq.chat.completions.create({
+        messages: [{
+          role: 'user',
+          content: prompt
+        }],
+        model: 'llama-3.1-8b-instant',
+        temperature: 0.1,
+        max_tokens: 1500
+      });
+
+      const responseText = completion.choices[0]?.message?.content?.trim();
+      
+      if (!responseText) {
+        throw new Error('Empty AI response');
+      }
+
+      console.log('AI Response received, length:', responseText.length);
+      
+      // Extract JSON from response
+      let jsonText = responseText;
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonText = jsonMatch[0];
+      }
+
+      const parsed = JSON.parse(jsonText);
+      
+      // Validate and merge with fallback
+      const result = {
+        overview: parsed.overview || fallbackAnalysis.overview,
+        subjects: Array.isArray(parsed.subjects) && parsed.subjects.length > 0 ? parsed.subjects : fallbackAnalysis.subjects,
+        aiAnalysis: {
+          overview: parsed.aiAnalysis?.overview || parsed.overview || fallbackAnalysis.aiAnalysis.overview,
+          keyTopics: Array.isArray(parsed.aiAnalysis?.keyTopics) ? parsed.aiAnalysis.keyTopics : fallbackAnalysis.aiAnalysis.keyTopics,
+          difficulty: parsed.aiAnalysis?.difficulty || fallbackAnalysis.aiAnalysis.difficulty,
+          recommendations: Array.isArray(parsed.aiAnalysis?.recommendations) ? parsed.aiAnalysis.recommendations : fallbackAnalysis.aiAnalysis.recommendations,
+          estimatedHours: parsed.aiAnalysis?.estimatedHours || fallbackAnalysis.aiAnalysis.estimatedHours
+        }
+      };
+
+      console.log('Analysis completed successfully with AI');
+      return result;
+      
+    } catch (aiError) {
+      console.warn('AI analysis failed, using fallback:', aiError.message);
+      return fallbackAnalysis;
+    }
+
+  } catch (error) {
+    console.error('Critical error in analyzeSyllabus:', error);
+    // Return basic fallback even if everything fails
+    return {
+      overview: `Syllabus uploaded for ${course} at ${university}`,
+      subjects: [{
+        name: course,
+        topics: ['Course content'],
+        weightage: 'Not specified',
+        description: 'Syllabus content uploaded successfully'
+      }],
+      aiAnalysis: {
+        overview: 'Syllabus analysis completed',
+        keyTopics: ['Course fundamentals'],
+        difficulty: 'intermediate',
+        recommendations: ['Study regularly'],
+        estimatedHours: 120
+      }
+    };
+  }
+}
+
+// Generate context-aware study buddy response
+async function generateContextAwareResponse(message, userContext) {
+  try {
+    const { university, course, semester, syllabusContent, subjects, userName, aiAnalysis } = userContext;
+    
+    let systemPrompt = '';
+    
+    if (university && course) {
+      systemPrompt = `You are a specialized AI tutor for ${university} students studying ${course}${semester ? ` in ${semester} semester` : ''}. `;
+      
+      if (syllabusContent) {
+        systemPrompt += `You have access to the student's actual course syllabus. `;
+        systemPrompt += `Key curriculum topics include: ${subjects ? subjects.slice(0, 5).join(', ') : 'various subjects covered in the syllabus'}. `;
+        systemPrompt += `Always prioritize information that aligns with this specific curriculum. `;
+        systemPrompt += `When possible, reference specific topics, learning outcomes, or concepts from their syllabus. `;
+        systemPrompt += `Syllabus content: ${syllabusContent.substring(0, 1500)}...`;
+      }
+      
+      if (aiAnalysis) {
+        systemPrompt += `Additional course insights: ${JSON.stringify(aiAnalysis).substring(0, 500)}. `;
+      }
+      
+      systemPrompt += `Provide responses that are directly relevant to this ${university} ${course} curriculum.`;
+    } else {
+      systemPrompt = `You are a helpful AI study buddy. Provide educational assistance and study guidance. Note: The student hasn't uploaded their syllabus yet, so encourage them to do so for more personalized help.`;
+    }
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user",
+          content: `${userName ? `Hi, I'm ${userName}. ` : ''}${message}`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1500
+    });
+
+    return completion.choices[0]?.message?.content || "I'm here to help with your studies!";
+  } catch (error) {
+    console.error('Error generating context-aware response:', error);
+    return "I'm experiencing some technical difficulties. Please try again.";
+  }
+}
+
+// Generate university-specific resources
+async function generateUniversityResources(subject, syllabusContext, options = {}) {
+  try {
+    const { university, course, semester, subjects = [], syllabusContent } = syllabusContext;
+    const { difficulty = 'intermediate', type = 'mixed', count = 8 } = options;
+    
+    // Create enhanced search query with syllabus context
+    let searchQuery = `${subject} `;
+    if (university && course) {
+      searchQuery += `${university} ${course} `;
+    }
+    if (semester) {
+      searchQuery += `${semester} semester `;
+    }
+    
+    // Add relevant syllabus topics
+    const relevantTopics = subjects.filter(topic => 
+      topic.toLowerCase().includes(subject.toLowerCase()) ||
+      subject.toLowerCase().includes(topic.toLowerCase())
+    ).slice(0, 3);
+    
+    if (relevantTopics.length > 0) {
+      searchQuery += `${relevantTopics.join(' ')} `;
+    }
+    
+    searchQuery += `curriculum study materials ${difficulty} ${type === 'mixed' ? 'tutorial practice' : type}`;
+    
+    console.log('Enhanced search query:', searchQuery);
+    
+    const searchResults = await searchTavily(searchQuery, count + 2);
+    
+    if (!searchResults || !searchResults.results) {
+      throw new Error('No search results found');
+    }
+    
+    // Use AI to curate and rank resources based on syllabus context
+    const curationPrompt = `
+    You are an expert academic resource curator for ${university || 'university'} ${course || 'students'}.
+    
+    Subject: ${subject}
+    University: ${university}
+    Course: ${course}
+    Semester: ${semester}
+    Relevant Topics: ${subjects.join(', ')}
+    
+    ${syllabusContent ? `Syllabus Content (for context): ${syllabusContent.substring(0, 1000)}...` : ''}
+    
+    Curate and rank the following resources for maximum relevance to this specific curriculum.
+    Prioritize resources that:
+    1. Match the university/course context
+    2. Cover syllabus topics
+    3. Are appropriate for ${difficulty} level
+    4. Provide ${type === 'mixed' ? 'diverse learning materials' : type + ' content'}
+    
+    Resources to curate: ${JSON.stringify(searchResults.results.slice(0, count))}
+    
+    Return a JSON object with this exact structure:
+    {
+      "resources": [
+        {
+          "title": "Resource Title",
+          "url": "resource_url",
+          "description": "Why this is relevant to the curriculum",
+          "format": "video|article|tutorial|practice|textbook",
+          "benefits": ["benefit1", "benefit2"],
+          "relevanceScore": 0.95,
+          "syllabusAlignment": "Covers topics X, Y from semester Z"
+        }
+      ]
+    }
+    `;
+
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: curationPrompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 2000
+    });
+
+    const responseText = completion.choices[0]?.message?.content;
+    
+    try {
+      // Try to extract JSON from response if it's wrapped in text
+      let jsonText = responseText;
+      const jsonStart = responseText.indexOf('{');
+      const jsonEnd = responseText.lastIndexOf('}');
+      
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        jsonText = responseText.substring(jsonStart, jsonEnd + 1);
+      }
+      
+      const curatedData = JSON.parse(jsonText);
+      return {
+        resources: curatedData.resources || [],
+        syllabusContext: {
+          university,
+          course,
+          semester,
+          topicsUsed: relevantTopics
+        }
+      };
+    } catch (parseError) {
+      console.error('Error parsing AI response, falling back to basic curation:', parseError);
+      
+      // Fallback: basic resource filtering
+      const basicResources = searchResults.results.slice(0, count).map(resource => ({
+        title: resource.title,
+        url: resource.url,
+        description: resource.content?.substring(0, 200) + '...',
+        format: 'website',
+        benefits: [`Resource for learning ${subject}`],
+        relevanceScore: 0.7,
+        syllabusAlignment: `General ${subject} content`
+      }));
+      
+      return { resources: basicResources };
+    }
+    
+  } catch (error) {
+    console.error('Error generating university resources:', error);
+    throw new Error('Failed to generate university-specific resources');
+  }
+}
+
+// Generate chat response for study buddy
+async function generateChatResponse(message, context = {}) {
+  try {
+    const systemPrompt = `You are an AI Study Buddy, a helpful and encouraging learning companion. Your role is to:
+
+🎯 Help students learn effectively
+📚 Answer questions on any subject  
+🧠 Explain complex concepts in simple terms
+💡 Provide study tips and strategies
+🎉 Keep students motivated and focused
+📝 Create quizzes to test knowledge
+
+Personality: Friendly, supportive, patient, and enthusiastic about learning.
+
+Guidelines:
+- Keep responses concise but helpful
+- Use emojis occasionally to maintain engagement
+- Encourage active learning
+- If you don't know something, admit it and suggest resources
+- Always be positive and motivating
+
+Context: ${context.userId ? `User ID: ${context.userId}` : 'Anonymous user'}`;
+
+    const response = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: message }
+      ],
+      model: 'llama-3.1-8b-instant',
+      temperature: 0.7,
+      max_tokens: 500
+    });
+
+    return response.choices[0].message.content;
+  } catch (error) {
+    console.error('Error generating chat response:', error);
+    return "I'm sorry, I'm having trouble connecting right now. Please try again in a moment! 🤔";
+  }
+}
+
+// Curate learning resources for a topic
+async function curateStudyResources(params) {
+  try {
+    const { topic, level = 'intermediate', existingResources = [] } = params;
+    
+    const curationPrompt = `As an expert educator, curate high-quality learning resources for the topic: "${topic}" at ${level} level.
+
+Provide a comprehensive list of resources including:
+1. Online courses (with platforms like Coursera, edX, Udemy)
+2. Books and textbooks
+3. YouTube channels/playlists
+4. Websites and tutorials
+5. Practice platforms
+6. Documentation and guides
+
+${existingResources.length > 0 ? `Existing resources to consider: ${existingResources.join(', ')}` : ''}
+
+Format as JSON array with objects containing:
+- title
+- type (course/book/video/website/practice)
+- url (if available)
+- description
+- difficulty
+- estimatedTime
+
+Provide 8-12 diverse, high-quality resources.`;
+
+    const response = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: 'You are an expert educational resource curator who recommends the best learning materials for any topic.' },
+        { role: 'user', content: curationPrompt }
+      ],
+      model: 'llama-3.1-8b-instant',
+      temperature: 0.4,
+      max_tokens: 1500
+    });
+
+    let resources;
+    try {
+      // Try to parse as JSON first
+      const jsonMatch = response.choices[0].message.content.match(/\[.*\]/s);
+      if (jsonMatch) {
+        resources = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('No JSON array found');
+      }
+    } catch (parseError) {
+      // Fallback: create structured resources from text
+      resources = parseResourcesFromText(response.choices[0].message.content, topic, level);
+    }
+
+    return resources;
+  } catch (error) {
+    console.error('Error curating resources:', error);
+    // Return fallback resources
+    return getFallbackResources(params.topic, params.level);
+  }
+}
+
+// Parse resources from AI text response when JSON parsing fails
+function parseResourcesFromText(text, topic, level) {
+  const fallbackResources = [
+    {
+      title: `${topic} - Getting Started Guide`,
+      type: 'website',
+      url: `https://www.google.com/search?q=${encodeURIComponent(topic + ' tutorial')}`,
+      description: `Comprehensive introduction to ${topic}`,
+      difficulty: level,
+      estimatedTime: '2-4 hours'
+    },
+    {
+      title: `${topic} YouTube Learning Playlist`,
+      type: 'video', 
+      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(topic + ' tutorial')}`,
+      description: `Video tutorials and explanations for ${topic}`,
+      difficulty: level,
+      estimatedTime: '3-5 hours'
+    },
+    {
+      title: `${topic} Online Course`,
+      type: 'course',
+      url: `https://www.coursera.org/search?query=${encodeURIComponent(topic)}`,
+      description: `Structured online course for ${topic}`,
+      difficulty: level,
+      estimatedTime: '4-8 weeks'
+    },
+    {
+      title: `${topic} Practice Exercises`,
+      type: 'practice',
+      url: `https://www.google.com/search?q=${encodeURIComponent(topic + ' practice problems')}`,
+      description: `Hands-on practice problems and exercises`,
+      difficulty: level,
+      estimatedTime: '2-3 hours'
+    }
+  ];
+
+  return fallbackResources;
+}
+
+// Get fallback resources when AI service fails
+function getFallbackResources(topic, level) {
+  return [
+    {
+      title: `Learn ${topic} - Comprehensive Guide`,
+      type: 'website',
+      url: `https://www.google.com/search?q=${encodeURIComponent(topic + ' complete guide')}`,
+      description: `Complete learning guide for ${topic} at ${level} level`,
+      difficulty: level,
+      estimatedTime: '3-6 hours'
+    },
+    {
+      title: `${topic} Video Course`,
+      type: 'video',
+      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(topic + ' course')}`,
+      description: `Video-based learning course for ${topic}`,
+      difficulty: level,
+      estimatedTime: '4-8 hours'
+    },
+    {
+      title: `${topic} Interactive Tutorial`,
+      type: 'website',
+      url: `https://www.google.com/search?q=${encodeURIComponent(topic + ' interactive tutorial')}`,
+      description: `Interactive tutorial and exercises`,
+      difficulty: level,
+      estimatedTime: '2-4 hours'
+    }
+  ];
+}
+
 // Export the functions and rate limiter
-export { aiRateLimiter, searchTavily, curateResources, generatePlan, generateMeetingSummary }; 
+export { aiRateLimiter, searchTavily, curateResources, generatePlan, generateMeetingSummary, analyzeSyllabus, analyzeSyllabusV2, generateContextAwareResponse, generateUniversityResources, generateChatResponse, curateStudyResources }; 

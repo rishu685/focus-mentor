@@ -9,6 +9,9 @@ import curateResourcesRouter from './routes/curateResources.js';
 import generatePlanRouter from './routes/generatePlan.js';
 import pdfChatRouter from './routes/pdfChat.js';
 import meetingRoomsRouter from './routes/meetingRooms.js';
+import syllabusRouter from './routes/syllabus.js';
+import studyBuddyRouter from './routes/studyBuddy.js';
+import aiChatRouter from './routes/aiChat.js';
 import rateLimit from 'express-rate-limit';
 import { mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -32,6 +35,8 @@ const io = new Server(server, {
       "https://mind-mentor-pearl.vercel.app",
       "https://mind-mentor.kartiklabhshetwar.me", 
       "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
       "https://www.mind-mentor.ink",
       "https://mind-mentor.ink",
     ],
@@ -51,6 +56,8 @@ app.use(
       "https://mind-mentor-pearl.vercel.app",
       "https://mind-mentor.kartiklabhshetwar.me",
       "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
       "https://www.mind-mentor.ink",
       "https://mind-mentor.ink",
     ],
@@ -98,11 +105,14 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-// Apply routes directly without auth middleware
-app.use('/generate-plan', generatePlanRouter);
-app.use('/curate-resources', curateResourcesRouter);
+// Apply routes with proper path mounting
+app.use('/api/study-plan', generatePlanRouter);
+app.use('/api/curate-resources', curateResourcesRouter);
+app.use('/api/chat', aiChatRouter);
 app.use('/pdf', pdfChatRouter);
-app.use('/meeting-rooms', meetingRoomsRouter);
+app.use('/api/meeting-rooms', meetingRoomsRouter);
+app.use('/api/syllabus', syllabusRouter);
+app.use('/api/study-buddy', studyBuddyRouter);
 
 // Socket.io for real-time meeting communication
 io.on('connection', (socket) => {
