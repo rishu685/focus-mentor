@@ -1,14 +1,14 @@
 [build]
   command = "npm run build"
-  functions = "netlify/functions"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
 
+# Redirect API calls to external backend
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/server"
+  to = "https://focus-mentor.onrender.com/api/:splat"
   status = 200
 
 # Handle Next.js client-side routing  
