@@ -6,10 +6,7 @@
   NODE_VERSION = "18"
 
 # Redirect specific API routes to external backend (exclude auth routes)
-[[redirects]]
-  from = "/api/ai/study-buddy"
-  to = "https://focus-mentor.onrender.com/api/study-buddy/chat"
-  status = 200
+# Keep /api/ai/* on Netlify (frontend AI routes)
 
 [[redirects]]
   from = "/api/study-buddy"
