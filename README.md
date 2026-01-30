@@ -2,7 +2,6 @@
 
 <div align="center">
 
-![Focus Mentor Logo](./public/logo.png)
 
 **An intelligent, comprehensive study companion that transforms learning through AI-powered tools and collaborative features**
 
