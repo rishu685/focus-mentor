@@ -2,15 +2,53 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
 export async function POST(request: NextRequest) {
+  console.log('🚀 API Route: study-buddy POST called');
+  
+  // Add CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
   try {
+    console.log('🔑 Checking GROQ API key...');
+    // Check if GROQ API key is available
+    if (!process.env.GROQ_API_KEY) {
+      console.error('❌ GROQ_API_KEY is not set');
+      const fallbackResponse = generateFallbackResponse('Hello', 'encouraging', 'Student');
+      return NextResponse.json({
+        content: fallbackResponse,
+        response: fallbackResponse,
+        messageType: 'explanation',
+        success: true,
+        fallbackUsed: true
+      }, { headers });
+    }
+    console.log('✅ GROQ_API_KEY is available');
+
+    console.log('👤 Getting session...');
     const session = await getServerSession();
+    console.log('Session:', session?.user?.name || 'Anonymous');
+    
+    console.log('📦 Parsing request body...');
     const body = await request.json();
+    console.log('Request body keys:', Object.keys(body));
+    console.log('Message:', body.message?.substring(0, 100));
+    
     const { message, sessionId, userId, personality, userName, chatHistory, conversationHistory } = body;
 
-    if (!message) {
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      const fallbackResponse = generateFallbackResponse('Hello', personality || 'encouraging', userName || session?.user?.name || 'Student');
       return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
+        { 
+          content: fallbackResponse,
+          response: fallbackResponse,
+          messageType: 'explanation',
+          success: true,
+          error: 'Message was empty - showing welcome message'
+        },
+        { status: 200, headers }
       );
     }
 
@@ -27,7 +65,7 @@ export async function POST(request: NextRequest) {
         response: groqResponse,
         messageType,
         success: true
-      });
+      }, { headers });
     } catch (groqError) {
       console.error('Groq API failed, using fallback:', groqError);
       
@@ -39,21 +77,40 @@ export async function POST(request: NextRequest) {
         content: fallbackResponse,
         response: fallbackResponse,
         messageType,
-        success: true
-      });
+        success: true,
+        fallbackUsed: true
+      }, { headers });
     }
 
   } catch (error) {
     console.error('Error in study-buddy API route:', error);
+    
+    // Return fallback response even on critical errors
+    const fallbackResponse = generateFallbackResponse('Hello', 'encouraging', 'Student');
+    
     return NextResponse.json(
       { 
-        error: 'Internal server error',
-        message: 'Failed to process your request. Please try again.',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        content: fallbackResponse,
+        response: fallbackResponse,
+        messageType: 'explanation',
+        success: true,
+        fallbackUsed: true,
+        error: 'API temporarily unavailable'
       },
-      { status: 500 }
+      { status: 200, headers }
     );
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }
 
 async function callGroqAPI(message: string, personality: string, userName: string, conversationHistory: Array<{role: string, content: string}> = []): Promise<string> {
@@ -115,32 +172,44 @@ Remember: Be genuinely helpful, not just friendly. Provide value in every respon
     });
   }
 
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
-      messages: messages,
-      max_tokens: 800,
-      temperature: 0.8
-    })
-  });
+  // Create an AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
 
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`Groq API error: ${response.status} - ${errorData}`);
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: messages,
+        max_tokens: 800,
+        temperature: 0.8
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Groq API error: ${response.status} - ${errorData}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response format from Groq API');
+    }
+
+    return data.choices[0].message.content;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
   }
-
-  const data = await response.json();
-  
-  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    throw new Error('Invalid response format from Groq API');
-  }
-
-  return data.choices[0].message.content;
 }
 
 function determineMessageType(content: string, userMessage: string): string {

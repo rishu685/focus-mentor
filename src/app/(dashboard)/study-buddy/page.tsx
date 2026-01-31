@@ -111,6 +111,10 @@ What subject would you like to study today?`,
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
 
+    console.log('🚀 Starting sendMessage function');
+    console.log('📝 Input message:', inputMessage);
+    console.log('👤 User session:', session?.user);
+
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -124,26 +128,47 @@ What subject would you like to study today?`,
     setIsTyping(true);
 
     try {
+      console.log('📡 Making API call to /api/study-buddy...');
+      
+      const requestBody = {
+        message: inputMessage,
+        userId: session?.user?.id || 'anonymous',
+        prioritizeSyllabus: syllabusInfo.available,
+        context: studyContext,
+        personality: buddyPersonality,
+        chatHistory: messages.slice(-10), // Last 10 messages for context
+        userName: session?.user?.name || 'Student'
+      };
+      
+      console.log('📦 Request body:', requestBody);
+
+      // Force local API call to avoid any redirect issues
+      const isLocalDevelopment = window.location.hostname === 'localhost';
+      const apiUrl = isLocalDevelopment 
+        ? `${window.location.origin}/api/study-buddy`
+        : '/api/study-buddy';
+      
+      console.log('🎯 API URL:', apiUrl);
+      console.log('🌍 Current hostname:', window.location.hostname);
+
       // Get AI response using enhanced study buddy with syllabus context
-      const response = await fetch('/api/study-buddy', {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: inputMessage,
-          userId: session?.user?.id || 'anonymous',
-          prioritizeSyllabus: syllabusInfo.available,
-          context: studyContext,
-          personality: buddyPersonality,
-          chatHistory: messages.slice(-10), // Last 10 messages for context
-          userName: session?.user?.name || 'Student'
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('📊 Response status:', response.status);
+      console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error('Failed to get AI response');
+        console.error('❌ Response not ok:', response.status, response.statusText);
+        throw new Error(`Failed to get AI response: ${response.status} ${response.statusText}`);
       }
 
+      console.log('🔍 Parsing response JSON...');
       const aiResponse = await response.json();
+      console.log('✅ AI Response received:', aiResponse);
       
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -153,6 +178,7 @@ What subject would you like to study today?`,
         messageType: aiResponse.messageType || 'explanation'
       };
 
+      console.log('💬 Assistant message to add:', assistantMessage);
       setMessages(prev => [...prev, assistantMessage]);
 
       // Show syllabus context if available
@@ -165,8 +191,14 @@ What subject would you like to study today?`,
         setStudyContext(aiResponse.updatedContext);
       }
 
+      console.log('✅ Message sent successfully!');
+
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error in sendMessage:', error);
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      
       const errorMessage: ChatMessage = {
         id: (Date.now() + 2).toString(),
         role: 'assistant',
@@ -177,6 +209,7 @@ What subject would you like to study today?`,
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
+      console.log('🏁 sendMessage function completed');
     }
   };
 
