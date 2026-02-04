@@ -20,6 +20,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/study-plan/*"
+  to = "https://focus-mentor.onrender.com/api/study-plan/:splat"
+  status = 200
+
+[[redirects]]
   from = "/api/pdf-chat/*"
   to = "https://focus-mentor.onrender.com/api/pdf-chat/:splat"
   status = 200

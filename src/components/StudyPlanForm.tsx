@@ -109,6 +109,25 @@ export default function StudyPlanForm({ onPlanGenerated }: StudyPlanFormProps) {
       console.log('Study plan response:', result);
 
       if (!response.ok) {
+        const result = await response.json();
+        
+        // If plan already exists, trigger a refresh to show existing plans
+        if (result.error === 'PLAN_EXISTS' || result.message?.includes('already have an active study plan')) {
+          setError(result.message || `You already have an active study plan for ${subject}. Check your plans below.`);
+          
+          // Trigger a refresh of the plans list to show existing plans
+          setTimeout(() => {
+            onPlanGenerated({} as StudyPlan);
+          }, 100);
+          
+          toast({
+            variant: "error",
+            title: "Plan Already Exists",
+            description: result.message || `You already have an active study plan for ${subject}. Check your existing plans below.`,
+          });
+          return;
+        }
+        
         throw new Error(result.message || result.error || 'Failed to generate plan');
       }
 
@@ -192,7 +211,23 @@ export default function StudyPlanForm({ onPlanGenerated }: StudyPlanFormProps) {
                 )}
               />
               {error && (
-                <p className="text-sm text-red-500 mt-1">{error}</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-red-500 mt-1">{error}</p>
+                  {error.includes('already have an active study plan') && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setError(null);
+                        onPlanGenerated({} as StudyPlan);
+                      }}
+                      className="text-xs"
+                    >
+                      Refresh Plans List
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
             <div className="flex-1">
