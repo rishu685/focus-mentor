@@ -10,6 +10,8 @@ import { useSession } from "next-auth/react";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { PaginationNav } from "@/components/ui/pagination-nav";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -42,6 +44,7 @@ export default function StudyPlanPage() {
       
       const data = await apiClient.getStudyPlan(session.user.id, force);
       console.log('Fetched plans data:', data);
+      console.log('Data type:', typeof data, 'Is array:', Array.isArray(data));
       
       if (data.error) {
         console.error("API returned error:", data.error);
@@ -54,16 +57,32 @@ export default function StudyPlanPage() {
         return;
       }
       
+      // Handle multiple response formats
+      let plansArray = [];
       if (data.plans && Array.isArray(data.plans)) {
+        plansArray = data.plans;
+      } else if (data.success && data.plans) {
+        plansArray = Array.isArray(data.plans) ? data.plans : [];
+      } else if (Array.isArray(data)) {
+        plansArray = data;
+      } else if (data && typeof data === 'object' && data.plan) {
+        // Single plan response
+        plansArray = [data.plan];
+      }
+      
+      console.log('Processed plans array:', plansArray, 'Length:', plansArray.length);
+      
+      if (plansArray.length > 0) {
         // Sort plans by _id as a fallback for creation time
-        const sortedPlans = data.plans.sort((a: StudyPlan, b: StudyPlan) => 
+        const sortedPlans = plansArray.sort((a: StudyPlan, b: StudyPlan) => 
           b._id.localeCompare(a._id)
         );
         console.log('Setting plans in state:', sortedPlans.length, 'plans');
         console.log('Plan IDs:', sortedPlans.map(p => p._id));
+        console.log('Plan subjects:', sortedPlans.map(p => p.overview?.subject));
         setStoredPlans(sortedPlans);
       } else {
-        console.error("Invalid plans data structure:", data);
+        console.log('No plans found, setting empty array');
         setStoredPlans([]);
       }
     } catch (error) {
@@ -165,6 +184,26 @@ export default function StudyPlanPage() {
       <div id="stored-plans" className="mt-8 sm:mt-12">
         <Separator className="my-6 sm:my-8" />
         <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Your Study Plans</h2>
+        
+        {/* Force refresh button for debugging/fixing display issues */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {storedPlans.length > 0 
+              ? `Found ${storedPlans.length} study plan${storedPlans.length === 1 ? '' : 's'}` 
+              : 'No study plans found'
+            }
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchPlans(true)}
+            disabled={loading}
+            className="text-xs"
+          >
+            {loading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+            Refresh Plans
+          </Button>
+        </div>
         
         {loading ? (
           <div className="space-y-4 sm:space-y-6">
