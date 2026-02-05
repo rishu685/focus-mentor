@@ -684,15 +684,22 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
   try {
     console.log('Generating plan for:', { subject, userId, examDate, hasSyllabus: !!syllabusContext });
     
-    // Cache key for study plan
-    const cacheKey = `plan_${subject}_${examDate}_${syllabusContext?.university || 'general'}`;
-    
-    // Check cache first
-    const cachedResult = cache.get(cacheKey);
-    if (cachedResult) {
-      console.log('Returning cached plan');
-      return cachedResult;
+    // Clear cache if this is an AI-related subject to prevent React content
+    const subjectLower = subject.toLowerCase();
+    if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine learning')) {
+      console.log('Clearing cache for AI subject to prevent React content');
+      cache.flushAll();
     }
+    
+    // Cache key for study plan (using clarified subject)
+    const cacheKey = `plan_${clarifiedSubject}_${examDate}_${syllabusContext?.university || 'general'}`;
+    
+    // Temporarily disable cache for AI subject fixes
+    // const cachedResult = cache.get(cacheKey);
+    // if (cachedResult) {
+    //   console.log('Returning cached plan');
+    //   return cachedResult;
+    // }
 
     // Calculate days until exam
     const examDateObj = new Date(examDate);
@@ -736,14 +743,18 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
           {
             role: "system",
             content: syllabusContext ? 
-              `You are an expert study planner for ${syllabusContext.university} students. Create detailed study plans in JSON format.` :
-              "You are an expert study planner. Create detailed study plans in JSON format."
+              `You are an expert study planner for ${syllabusContext.university} students. Create detailed study plans in JSON format. CRITICAL: If the subject is about AI/Artificial Intelligence, focus on machine learning, neural networks, data science - NEVER React or web development.` :
+              "You are an expert study planner. Create detailed study plans in JSON format. CRITICAL: If asked about AI/Artificial Intelligence, focus on machine learning, algorithms, data science - NEVER web development or React."
           },
           {
             role: "user",
             content: `${contextPrompt}
             
-            IMPORTANT: If the subject contains "AI", treat it as "Artificial Intelligence" and "Machine Learning", NOT web development or React.
+            CRITICAL INSTRUCTIONS:
+            - If this is about AI/Artificial Intelligence, DO NOT mention React, JSX, components, hooks, or web development
+            - For AI subjects, focus on: Machine Learning, Neural Networks, Deep Learning, NLP, Computer Vision, Data Science
+            - If the subject contains "AI" or "artificial intelligence", treat it as computer science AI/ML, NOT web development
+            - DO NOT include React, JavaScript, or frontend development content for AI subjects
             
             Return ONLY valid JSON in this exact format:
             {
@@ -769,7 +780,7 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
             }`
           }
         ],
-        temperature: 0.3,
+        temperature: 0.1,
         max_tokens: 2000
       });
 
