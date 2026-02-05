@@ -701,12 +701,20 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
     
     console.log('Days until exam:', daysUntilExam);
 
-    // Prepare context-aware prompt
-    let contextPrompt = `Create a detailed study plan for ${subject} with ${daysUntilExam} days until the exam on ${examDate}.`;
+    // Prepare context-aware prompt with subject clarification
+    const subjectLower = subject.toLowerCase();
+    let clarifiedSubject = subject;
+    
+    // Clarify ambiguous subjects
+    if (subjectLower.includes('ai') && !subjectLower.includes('react') && !subjectLower.includes('javascript')) {
+      clarifiedSubject = `Artificial Intelligence and Machine Learning (${subject})`;
+    }
+    
+    let contextPrompt = `Create a detailed study plan for ${clarifiedSubject} with ${daysUntilExam} days until the exam on ${examDate}.`;
     
     if (syllabusContext) {
       const { university, course, relevantSubject, aiAnalysis } = syllabusContext;
-      contextPrompt = `Create a detailed study plan for ${subject} with ${daysUntilExam} days until the exam on ${examDate}.
+      contextPrompt = `Create a detailed study plan for ${clarifiedSubject} with ${daysUntilExam} days until the exam on ${examDate}.
       
       University Context: ${university} - ${course}
       ${relevantSubject ? `Syllabus Topics: ${relevantSubject.topics.join(', ')}` : ''}
@@ -716,7 +724,7 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       
       Please tailor the study plan to align with the university curriculum and syllabus requirements.`;
     } else {
-      contextPrompt += `\n\nThis is a general study plan. Provide comprehensive coverage of ${subject} fundamentals and advanced topics.`;
+      contextPrompt += `\n\nThis is a general study plan. Provide comprehensive coverage of ${clarifiedSubject} fundamentals and advanced topics.`;
     }
 
     // Generate AI plan with fallback
@@ -735,10 +743,12 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
             role: "user",
             content: `${contextPrompt}
             
+            IMPORTANT: If the subject contains "AI", treat it as "Artificial Intelligence" and "Machine Learning", NOT web development or React.
+            
             Return ONLY valid JSON in this exact format:
             {
               "overview": {
-                "subject": "${subject}",
+                "subject": "${clarifiedSubject}",
                 "duration": "${daysUntilExam} days",
                 "examDate": "${examDate}"
               },
@@ -780,11 +790,11 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       // Create comprehensive fallback plan
       parsedPlan = {
         overview: {
-          subject: subject,
+          subject: clarifiedSubject,
           duration: `${daysUntilExam} days`,
           examDate: examDate
         },
-        weeklyPlans: createFallbackWeeklyPlan(subject, daysUntilExam),
+        weeklyPlans: createFallbackWeeklyPlan(clarifiedSubject, daysUntilExam),
         recommendations: [
           "Study consistently every day",
           "Take regular breaks during study sessions",
@@ -799,7 +809,7 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
     const plan = new StudyPlan({
       userId,
       overview: {
-        subject: parsedPlan.overview?.subject || subject,
+        subject: parsedPlan.overview?.subject || clarifiedSubject,
         duration: parsedPlan.overview?.duration || `${daysUntilExam} days`,
         examDate: parsedPlan.overview?.examDate || examDate
       },
