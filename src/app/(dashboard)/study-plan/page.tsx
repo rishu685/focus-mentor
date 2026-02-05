@@ -44,23 +44,46 @@ export default function StudyPlanPage() {
         }
       }
       
-      // Try direct backend API call first
+      // Try direct backend API call first with error handling
       console.log('Trying direct backend API call...');
       try {
-        const directResponse = await fetch(`https://focus-mentor.onrender.com/api/study-plan/${userId}`);
+        const backendUrl = `https://focus-mentor.onrender.com/api/study-plan/${encodeURIComponent(userId)}`;
+        console.log('Backend URL:', backendUrl);
+        
+        const directResponse = await fetch(backendUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: force ? 'no-cache' : 'default'
+        });
+        
+        console.log('Direct response status:', directResponse.status, directResponse.statusText);
+        
         if (directResponse.ok) {
           const directData = await directResponse.json();
           console.log('Direct backend response:', directData);
           
           if (directData.success && directData.plans && directData.plans.length > 0) {
             console.log('Found plans via direct backend:', directData.plans.length);
-            setStoredPlans(directData.plans);
+            const sortedPlans = directData.plans.sort((a: StudyPlan, b: StudyPlan) => 
+              new Date(b.createdAt || b._id).getTime() - new Date(a.createdAt || a._id).getTime()
+            );
+            setStoredPlans(sortedPlans);
+            setLoading(false);
+            return;
+          } else if (directData.success && directData.plans && directData.plans.length === 0) {
+            console.log('No plans found in backend response');
+            setStoredPlans([]);
             setLoading(false);
             return;
           }
+        } else {
+          const errorText = await directResponse.text();
+          console.error('Direct backend error:', directResponse.status, errorText);
         }
       } catch (directError) {
-        console.log('Direct backend failed, trying frontend API:', directError);
+        console.log('Direct backend failed:', directError);
       }
       
       // Fallback to frontend API
