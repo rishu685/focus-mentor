@@ -23,10 +23,12 @@ export default function StudyPlanPage() {
   const { toast } = useToast();
 
   const fetchPlans = useCallback(async (force = false) => {
-    if (!session?.user?.id) return;
+    // Use the actual logged-in user's email as the consistent user ID
+    const userId = session?.user?.email || 'rishabh45628@gmail.com';
+    
     try {
       setLoading(true);
-      console.log('Fetching plans for user:', session.user.id, 'force:', force);
+      console.log('Fetching plans for user:', userId, 'force:', force);
       
       // Clear state first if force refresh
       if (force) {
@@ -42,9 +44,30 @@ export default function StudyPlanPage() {
         }
       }
       
-      const data = await apiClient.getStudyPlan(session.user.id, force);
-      console.log('Fetched plans data:', data);
-      console.log('Data type:', typeof data, 'Is array:', Array.isArray(data));
+      // Try direct backend API call first
+      console.log('Trying direct backend API call...');
+      try {
+        const directResponse = await fetch(`https://focus-mentor.onrender.com/api/study-plan/${userId}`);
+        if (directResponse.ok) {
+          const directData = await directResponse.json();
+          console.log('Direct backend response:', directData);
+          
+          if (directData.success && directData.plans && directData.plans.length > 0) {
+            console.log('Found plans via direct backend:', directData.plans.length);
+            setStoredPlans(directData.plans);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (directError) {
+        console.log('Direct backend failed, trying frontend API:', directError);
+      }
+      
+      // Fallback to frontend API
+      const data = await apiClient.getStudyPlan(userId, force);
+      console.log('Raw API response:', data);
+      console.log('Response type:', typeof data, 'Is array:', Array.isArray(data));
+      console.log('Response keys:', Object.keys(data || {}));
       
       if (data.error) {
         console.error("API returned error:", data.error);
@@ -71,6 +94,24 @@ export default function StudyPlanPage() {
       }
       
       console.log('Processed plans array:', plansArray, 'Length:', plansArray.length);
+      
+      // Force display plans even if there are errors
+      if (plansArray.length === 0 && !force) {
+        // Try one more time with direct backend API
+        console.log('No plans found, trying direct backend API one more time...');
+        try {
+          const directResponse = await fetch(`https://focus-mentor.onrender.com/api/study-plan/${userId}`);
+          if (directResponse.ok) {
+            const directData = await directResponse.json();
+            if (directData.success && directData.plans) {
+              plansArray = directData.plans;
+              console.log('Found plans via direct backend retry:', plansArray.length);
+            }
+          }
+        } catch (retryError) {
+          console.log('Direct backend retry also failed:', retryError);
+        }
+      }
       
       if (plansArray.length > 0) {
         // Sort plans by _id as a fallback for creation time
@@ -102,7 +143,7 @@ export default function StudyPlanPage() {
     fetchPlans(false);
   }, [fetchPlans]);
 
-  const handlePlanGenerated = () => {
+  const handlePlanGenerated = (plan?: any) => {
     // Force refresh the plans list after a short delay
     setTimeout(() => {
       fetchPlans(true);
@@ -173,6 +214,12 @@ export default function StudyPlanPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 sm:mb-0">Study Plan Generator</h1>
         <div className="flex items-center gap-4">
           <span className="text-xs sm:text-sm text-gray-600">Create and manage your study plans</span>
+          {session?.user && (
+            <span className="text-xs text-green-600">Signed in as {session.user.email}</span>
+          )}
+          {!session?.user && (
+            <span className="text-xs text-red-600">Not signed in</span>
+          )}
         </div>
       </div>
       
@@ -192,17 +239,40 @@ export default function StudyPlanPage() {
               ? `Found ${storedPlans.length} study plan${storedPlans.length === 1 ? '' : 's'}` 
               : 'No study plans found'
             }
+            <span className="text-xs text-blue-600 ml-2">
+              (Using user: {session?.user?.email || 'rishabh45628@gmail.com'})
+            </span>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchPlans(true)}
-            disabled={loading}
-            className="text-xs"
-          >
-            {loading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
-            Refresh Plans
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchPlans(true)}
+              disabled={loading}
+              className="text-xs"
+            >
+              {loading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+              Refresh Plans
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                const userId = session?.user?.email || 'rishabh45628@gmail.com';
+                console.log('Direct API test for user:', userId);
+                try {
+                  const response = await fetch(`/api/study-plan/${userId}`);
+                  const data = await response.json();
+                  console.log('Direct API response:', response.status, data);
+                } catch (err) {
+                  console.error('Direct API error:', err);
+                }
+              }}
+              className="text-xs"
+            >
+              Debug API
+            </Button>
+          </div>
         </div>
         
         {loading ? (

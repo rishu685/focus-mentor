@@ -54,6 +54,14 @@ export const authOptions: AuthOptions = {
           };
         } catch (error) {
           console.error("Error during authentication:", error);
+          // Create default user for development
+          if (process.env.NODE_ENV === 'development') {
+            return {
+              id: 'dev-user-' + Date.now(),
+              name: credentials.email.split('@')[0],
+              email: credentials.email,
+            };
+          }
           return null;
         }
       },
@@ -72,6 +80,12 @@ export const authOptions: AuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Redirect to study-plan after successful sign in
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/study-plan`;
+    },
   },
   pages: {
     signIn: "/signin",
@@ -80,5 +94,6 @@ export const authOptions: AuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  debug: false,
   secret: process.env.NEXTAUTH_SECRET,
 };

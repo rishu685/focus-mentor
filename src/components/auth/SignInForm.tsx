@@ -64,17 +64,20 @@ export function SignInForm() {
           title: "Error",
           description: "Invalid credentials",
         });
+        setLoading(false);
         return;
       }
 
-      toast({
-        variant: "success",
-        title: "Success",
-        description: "Logged in successfully",
-      });
-
-      router.push("/home");
-      router.refresh();
+      if (res?.ok) {
+        toast({
+          variant: "success",
+          title: "Success",
+          description: "Logged in successfully",
+        });
+        
+        // Force page reload to the study plan page
+        window.location.replace("/study-plan");
+      }
     } catch (error) {
       console.error(error);
       toast({
