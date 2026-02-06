@@ -46,8 +46,7 @@ const MeetingSummarySchema = new Schema({
 const MeetingRoomSchema = new Schema({
   roomId: { 
     type: String, 
-    unique: true,
-    index: true 
+    unique: true
   },
   title: { type: String, required: true },
   description: { type: String },
