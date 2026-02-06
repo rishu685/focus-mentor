@@ -12,6 +12,7 @@ import meetingRoomsRouter from './routes/meetingRooms.js';
 import syllabusRouter from './routes/syllabus.js';
 import studyBuddyRouter from './routes/studyBuddy.js';
 import aiChatRouter from './routes/aiChat.js';
+import cleanupAIRouter from './routes/cleanupAI.js';
 import rateLimit from 'express-rate-limit';
 import { mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -113,6 +114,7 @@ app.use('/pdf', pdfChatRouter);
 app.use('/api/meeting-rooms', meetingRoomsRouter);
 app.use('/api/syllabus', syllabusRouter);
 app.use('/api/study-buddy', studyBuddyRouter);
+app.use('/api/cleanup-ai-plans', cleanupAIRouter);
 
 // Socket.io for real-time meeting communication
 io.on('connection', (socket) => {
