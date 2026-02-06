@@ -734,7 +734,27 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       contextPrompt += `\n\nThis is a general study plan. Provide comprehensive coverage of ${clarifiedSubject} fundamentals and advanced topics.`;
     }
 
-    // Generate AI plan with fallback
+    // FORCE AI fallback for AI subjects to eliminate React content completely
+    if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine')) {
+      console.log('FORCING AI-specific fallback plan for AI subject');
+      const aiFallbackPlan = createAISpecificFallbackPlan(clarifiedSubject, daysUntilExam);
+      
+      const plan = new StudyPlan({
+        userId,
+        overview: aiFallbackPlan.overview,
+        weeklyPlans: aiFallbackPlan.weeklyPlans,
+        recommendations: aiFallbackPlan.recommendations,
+        isActive: true,
+        progress: 0,
+        lastUpdated: new Date()
+      });
+      
+      await plan.save();
+      console.log('AI-specific plan saved successfully');
+      return plan;
+    }
+
+    // Generate AI plan with fallback for non-AI subjects
     let parsedPlan;
     try {
       const completion = await groq.chat.completions.create({
