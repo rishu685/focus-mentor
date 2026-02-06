@@ -13,7 +13,7 @@ export async function GET(
     }
 
     // Forward to backend
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
     const response = await fetch(`${backendUrl}/api/study-plan/${params.userId}`, {
       method: 'GET',
       headers: {
