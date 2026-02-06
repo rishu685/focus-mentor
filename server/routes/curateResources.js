@@ -20,36 +20,56 @@ router.get('/:userId', async (req, res) => {
       });
     }
 
-    const resources = await CuratedResource.find({ userId })
-      .sort({ createdAt: -1 });
+    // Test basic database connectivity first
+    console.log('Backend: Testing database connection...');
+    const connectionState = mongoose.connection.readyState;
+    console.log('Backend: MongoDB connection state:', connectionState);
     
-    console.log('Backend: Database query for userId:', userId);
-    console.log('Backend: MongoDB connection state:', mongoose.connection.readyState);
+    if (connectionState !== 1) {
+      return res.status(500).json({
+        success: false,
+        error: 'Database not connected',
+        connectionState
+      });
+    }
+
+    console.log('Backend: Performing database query...');
+    const resources = await CuratedResource.find({ userId })
+      .sort({ createdAt: -1 })
+      .lean(); // Use lean() for better performance
+    
+    console.log('Backend: Database query completed');
     console.log('Backend: Found resources count:', resources.length);
+    
     if (resources.length > 0) {
-      console.log('Backend: Resources sample:', resources.map(r => ({ 
-        id: r._id, 
-        topic: r.topic, 
-        resourceCount: r.resources?.length || 0,
-        userId: r.userId 
-      })));
+      console.log('Backend: Sample resource:', {
+        id: resources[0]._id,
+        topic: resources[0].topic,
+        userId: resources[0].userId,
+        resourceCount: resources[0].resources?.length || 0
+      });
     }
     
-    res.json({ 
+    console.log('Backend: Sending response...');
+    return res.json({ 
       success: true, 
-      resources 
+      resources,
+      count: resources.length
     });
+    
   } catch (error) {
     console.error('Backend: Error fetching resources:', error);
     console.error('Backend: Error details:', {
       name: error.name,
       message: error.message,
-      stack: error.stack
+      stack: error.stack?.substring(0, 500) // Truncate stack for readability
     });
-    res.status(500).json({ 
+    
+    return res.status(500).json({ 
       success: false, 
       error: 'Failed to fetch resources',
-      details: error.message 
+      details: error.message,
+      errorName: error.name
     });
   }
 });
