@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import { searchTavily, curateResources, generateUniversityResources, curateStudyResources } from '../services/aiService.js';
 import CuratedResource from '../models/curatedResource.js';
 import { Syllabus } from '../models/syllabus.js';
@@ -23,7 +24,7 @@ router.get('/:userId', async (req, res) => {
       .sort({ createdAt: -1 });
     
     console.log('Backend: Database query for userId:', userId);
-    console.log('Backend: MongoDB connection state:', require('mongoose').connection.readyState);
+    console.log('Backend: MongoDB connection state:', mongoose.connection.readyState);
     console.log('Backend: Found resources count:', resources.length);
     if (resources.length > 0) {
       console.log('Backend: Resources sample:', resources.map(r => ({ 
