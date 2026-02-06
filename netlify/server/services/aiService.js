@@ -787,6 +787,17 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       const responseText = completion.choices[0]?.message?.content || "{}";
       console.log('AI response received, length:', responseText.length);
       
+      // CRITICAL: Validate content for AI subjects to reject React content
+      if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine')) {
+        const reactTerms = ['react', 'jsx', 'component', 'hook', 'props', 'state', 'javascript', 'frontend', 'web development'];
+        const hasReactContent = reactTerms.some(term => responseText.toLowerCase().includes(term));
+        
+        if (hasReactContent) {
+          console.log('REJECTED AI response - contains React content, forcing AI-specific fallback');
+          throw new Error('AI response contains React content - using AI fallback');
+        }
+      }
+      
       // Clean and extract JSON
       let cleanResponse = responseText.trim();
       const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
@@ -798,22 +809,29 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       console.log('AI plan parsed successfully');
     } catch (aiError) {
       console.error('AI generation failed, using fallback:', aiError.message);
-      // Create comprehensive fallback plan
-      parsedPlan = {
-        overview: {
-          subject: clarifiedSubject,
-          duration: `${daysUntilExam} days`,
-          examDate: examDate
-        },
-        weeklyPlans: createFallbackWeeklyPlan(clarifiedSubject, daysUntilExam),
-        recommendations: [
-          "Study consistently every day",
-          "Take regular breaks during study sessions",
-          "Practice with real examples and exercises",
-          "Review previous topics regularly",
-          "Get enough sleep and maintain a healthy routine"
-        ]
-      };
+      
+      // Create AI-specific fallback plan for AI subjects
+      if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine')) {
+        console.log('Creating AI-specific fallback plan');
+        parsedPlan = createAISpecificFallbackPlan(clarifiedSubject, daysUntilExam);
+      } else {
+        // Create comprehensive fallback plan for other subjects
+        parsedPlan = {
+          overview: {
+            subject: clarifiedSubject,
+            duration: `${daysUntilExam} days`,
+            examDate: examDate
+          },
+          weeklyPlans: createFallbackWeeklyPlan(clarifiedSubject, daysUntilExam),
+          recommendations: [
+            "Study consistently every day",
+            "Take regular breaks during study sessions",
+            "Practice with real examples and exercises",
+            "Review previous topics regularly",
+            "Get enough sleep and maintain a healthy routine"
+          ]
+        };
+      }
     }
     
     // Validate and create StudyPlan instance with robust fallbacks
@@ -827,17 +845,19 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       weeklyPlans: Array.isArray(parsedPlan.weeklyPlans) && parsedPlan.weeklyPlans.length > 0 ? 
         parsedPlan.weeklyPlans.map(week => ({
           week: week.week || "Week 1",
-          goals: Array.isArray(week.goals) ? week.goals : [`Master ${subject} concepts`],
+          goals: Array.isArray(week.goals) ? week.goals : [`Master ${clarifiedSubject} concepts`],
           dailyTasks: Array.isArray(week.dailyTasks) ? week.dailyTasks.map(task => ({
             day: task.day || "Day 1",
-            tasks: Array.isArray(task.tasks) ? task.tasks : [`Study ${subject}`],
+            tasks: Array.isArray(task.tasks) ? task.tasks : [`Study ${clarifiedSubject}`],
             duration: task.duration || "2-3 hours"
           })) : [{
             day: "Daily",
-            tasks: [`Study ${subject} fundamentals`, "Practice exercises"],
+            tasks: [`Study ${clarifiedSubject} fundamentals`, "Practice exercises"],
             duration: "2-3 hours"
           }]
-        })) : createFallbackWeeklyPlan(subject, daysUntilExam),
+        })) : (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine')) ? 
+          createAISpecificFallbackPlan(clarifiedSubject, daysUntilExam).weeklyPlans : 
+          createFallbackWeeklyPlan(clarifiedSubject, daysUntilExam),
       recommendations: Array.isArray(parsedPlan.recommendations) ? parsedPlan.recommendations : [
         "Study regularly", "Practice consistently", "Review materials"
       ],
@@ -912,6 +932,98 @@ function createFallbackWeeklyPlan(subject, totalDays) {
   }
   
   return weeklyPlans;
+}
+
+// AI-specific fallback plan with proper AI content
+function createAISpecificFallbackPlan(subject, totalDays) {
+  return {
+    overview: {
+      subject: subject,
+      duration: `${totalDays} days`,
+      examDate: new Date(Date.now() + totalDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    },
+    weeklyPlans: [
+      {
+        week: "Week 1",
+        goals: [
+          "Master AI and Machine Learning fundamentals",
+          "Understand neural network concepts",
+          "Learn data preprocessing techniques"
+        ],
+        dailyTasks: [{
+          day: "Week 1 Daily Tasks",
+          tasks: [
+            "Study machine learning algorithms",
+            "Practice with Python for AI",
+            "Learn about supervised learning",
+            "Review linear algebra concepts"
+          ],
+          duration: "3-4 hours"
+        }]
+      },
+      {
+        week: "Week 2", 
+        goals: [
+          "Deep dive into neural networks",
+          "Understand deep learning concepts",
+          "Practice with real datasets"
+        ],
+        dailyTasks: [{
+          day: "Week 2 Daily Tasks",
+          tasks: [
+            "Study neural network architectures",
+            "Learn about backpropagation",
+            "Practice with TensorFlow/PyTorch",
+            "Work on classification problems"
+          ],
+          duration: "3-4 hours"
+        }]
+      },
+      {
+        week: "Week 3",
+        goals: [
+          "Master advanced AI concepts",
+          "Learn about NLP and Computer Vision",
+          "Build practical AI projects"
+        ],
+        dailyTasks: [{
+          day: "Week 3 Daily Tasks", 
+          tasks: [
+            "Study natural language processing",
+            "Learn computer vision techniques", 
+            "Practice with CNN and RNN models",
+            "Build AI projects with real data"
+          ],
+          duration: "3-4 hours"
+        }]
+      },
+      {
+        week: "Week 4",
+        goals: [
+          "Review and consolidate AI knowledge",
+          "Practice advanced algorithms",
+          "Prepare for AI applications"
+        ],
+        dailyTasks: [{
+          day: "Week 4 Daily Tasks",
+          tasks: [
+            "Review machine learning concepts",
+            "Practice AI problem solving",
+            "Study AI ethics and applications",
+            "Build portfolio AI projects"
+          ],
+          duration: "3-4 hours"
+        }]
+      }
+    ],
+    recommendations: [
+      "Focus on mathematics and statistics fundamentals",
+      "Practice coding in Python regularly",
+      "Work with real datasets and projects",
+      "Study latest AI research papers",
+      "Join AI communities and forums"
+    ]
+  };
 }
 
 // Generate AI meeting summary
