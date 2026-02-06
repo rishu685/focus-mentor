@@ -39,10 +39,16 @@ router.get('/:userId', async (req, res) => {
       resources 
     });
   } catch (error) {
-    console.error('Error fetching resources:', error);
+    console.error('Backend: Error fetching resources:', error);
+    console.error('Backend: Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to fetch resources' 
+      error: 'Failed to fetch resources',
+      details: error.message 
     });
   }
 });
