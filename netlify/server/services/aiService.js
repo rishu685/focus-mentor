@@ -709,7 +709,7 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
     console.log('Days until exam:', daysUntilExam);
 
     // Prepare context-aware prompt with subject clarification
-    const subjectLower = subject.toLowerCase();
+    // subjectLower already declared above
     let clarifiedSubject = subject;
     
     // Clarify ambiguous subjects
