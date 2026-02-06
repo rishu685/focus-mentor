@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to backend API
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
     console.log('Forwarding to:', `${backendUrl}/api/study-plan`);
     
     const backendResponse = await fetch(`${backendUrl}/api/study-plan`, {
