@@ -12,7 +12,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to backend with syllabus priority
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
+    console.log('Forwarding resource request to:', `${backendUrl}/api/curate-resources`);
+    
     const backendResponse = await fetch(`${backendUrl}/api/curate-resources`, {
       method: 'POST',
       headers: {

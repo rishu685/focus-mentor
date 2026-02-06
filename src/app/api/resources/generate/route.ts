@@ -4,7 +4,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
     const response = await fetch(`${backendUrl}/api/curate-resources`, {
       method: 'POST',
       headers: {
