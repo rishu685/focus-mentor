@@ -705,8 +705,14 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
     const daysUntilExam = Math.max(1, Math.ceil((examDateObj - currentDate) / (1000 * 60 * 60 * 24)));
     
     console.log('Days until exam:', daysUntilExam);
-    console.log('Subject processing:', { original: subject, lower: subjectLower, clarified: clarifiedSubject });
-    
+console.log('Subject processing:', { 
+      original: subject, 
+      lower: subjectLower, 
+      clarified: clarifiedSubject,
+      containsAI: subjectLower.includes('ai'),
+      exactAI: subject.trim().toLowerCase() === 'ai'
+    });
+
     let contextPrompt = `Create a detailed study plan for ${clarifiedSubject} with ${daysUntilExam} days until the exam on ${examDate}.`;
     
     if (syllabusContext) {
@@ -724,12 +730,19 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       contextPrompt += `\n\nThis is a general study plan. Provide comprehensive coverage of ${clarifiedSubject} fundamentals and advanced topics.`;
     }
 
-    // FORCE AI fallback for ANY mention of AI to eliminate React content completely
+    // FORCE AI fallback for ANY mention of AI - ALWAYS for debugging
+    console.log('🤖 CHECKING AI SUBJECT CONDITIONS:');
+    console.log('- subjectLower.includes("ai"):', subjectLower.includes('ai'));
+    console.log('- subjectLower.includes("artificial"):', subjectLower.includes('artificial'));  
+    console.log('- subjectLower.includes("machine"):', subjectLower.includes('machine'));
+    console.log('- exact match "ai":', subject.trim().toLowerCase() === 'ai');
+    
     if (subjectLower.includes('ai') || 
         subjectLower.includes('artificial') || 
         subjectLower.includes('machine') ||
         subject.trim().toLowerCase() === 'ai') {
       
+      console.log('🚨 AI SUBJECT DETECTED - FORCING FALLBACK!');
       console.log('🤖 FORCING AI-specific fallback plan for AI subject:', { 
         original: subject, 
         lower: subjectLower, 
@@ -759,6 +772,8 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       
       await plan.save();
       console.log('✅ AI-specific plan saved successfully with ID:', plan._id);
+      console.log('📊 Plan overview subject:', plan.overview.subject);
+      console.log('📊 First week goals:', plan.weeklyPlans[0]?.goals);
       return plan;
     }
 
