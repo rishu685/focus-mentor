@@ -684,38 +684,28 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
   try {
     console.log('Generating plan for:', { subject, userId, examDate, hasSyllabus: !!syllabusContext });
     
-    // Clear cache if this is an AI-related subject to prevent React content
+    // Prepare context-aware prompt with subject clarification FIRST
     const subjectLower = subject.toLowerCase();
-    if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine learning')) {
-      console.log('Clearing cache for AI subject to prevent React content');
-      cache.flushAll();
-    }
-    
-    // Cache key for study plan (using clarified subject)
-    const cacheKey = `plan_${clarifiedSubject}_${examDate}_${syllabusContext?.university || 'general'}`;
-    
-    // Temporarily disable cache for AI subject fixes
-    // const cachedResult = cache.get(cacheKey);
-    // if (cachedResult) {
-    //   console.log('Returning cached plan');
-    //   return cachedResult;
-    // }
-
-    // Calculate days until exam
-    const examDateObj = new Date(examDate);
-    const currentDate = new Date();
-    const daysUntilExam = Math.max(1, Math.ceil((examDateObj - currentDate) / (1000 * 60 * 60 * 24)));
-    
-    console.log('Days until exam:', daysUntilExam);
-
-    // Prepare context-aware prompt with subject clarification
-    // subjectLower already declared above
     let clarifiedSubject = subject;
     
     // Clarify ambiguous subjects
     if (subjectLower.includes('ai') && !subjectLower.includes('react') && !subjectLower.includes('javascript')) {
       clarifiedSubject = `Artificial Intelligence and Machine Learning (${subject})`;
     }
+    
+    // Clear cache if this is an AI-related subject to prevent React content
+    if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine learning')) {
+      console.log('Clearing cache for AI subject to prevent React content');
+      cache.flushAll();
+    }
+    
+    // Calculate days until exam
+    const examDateObj = new Date(examDate);
+    const currentDate = new Date();
+    const daysUntilExam = Math.max(1, Math.ceil((examDateObj - currentDate) / (1000 * 60 * 60 * 24)));
+    
+    console.log('Days until exam:', daysUntilExam);
+    console.log('Subject processing:', { original: subject, lower: subjectLower, clarified: clarifiedSubject });
     
     let contextPrompt = `Create a detailed study plan for ${clarifiedSubject} with ${daysUntilExam} days until the exam on ${examDate}.`;
     
@@ -734,10 +724,28 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       contextPrompt += `\n\nThis is a general study plan. Provide comprehensive coverage of ${clarifiedSubject} fundamentals and advanced topics.`;
     }
 
-    // FORCE AI fallback for AI subjects to eliminate React content completely
-    if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine')) {
-      console.log('FORCING AI-specific fallback plan for AI subject');
+    // FORCE AI fallback for ANY mention of AI to eliminate React content completely
+    if (subjectLower.includes('ai') || 
+        subjectLower.includes('artificial') || 
+        subjectLower.includes('machine') ||
+        subject.trim().toLowerCase() === 'ai') {
+      
+      console.log('🤖 FORCING AI-specific fallback plan for AI subject:', { 
+        original: subject, 
+        lower: subjectLower, 
+        clarified: clarifiedSubject,
+        exactMatch: subject.trim().toLowerCase() === 'ai'
+      });
+      
       const aiFallbackPlan = createAISpecificFallbackPlan(clarifiedSubject, daysUntilExam);
+      
+      // Add debug logging
+      console.log('AI fallback plan generated:', {
+        subject: aiFallbackPlan.overview.subject,
+        weekCount: aiFallbackPlan.weeklyPlans.length,
+        firstWeekGoals: aiFallbackPlan.weeklyPlans[0]?.goals,
+        firstWeekTasks: aiFallbackPlan.weeklyPlans[0]?.dailyTasks[0]?.tasks
+      });
       
       const plan = new StudyPlan({
         userId,
@@ -750,7 +758,7 @@ async function generatePlan(subject, userId, examDate, syllabusContext = null) {
       });
       
       await plan.save();
-      console.log('AI-specific plan saved successfully');
+      console.log('✅ AI-specific plan saved successfully with ID:', plan._id);
       return plan;
     }
 
