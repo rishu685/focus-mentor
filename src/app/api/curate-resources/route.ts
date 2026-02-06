@@ -3,17 +3,27 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { topic, level, resources, userId } = body;
+    const { topic, level, resources, userId, subject, difficulty, type, prioritizeSyllabus } = body;
 
-    if (!topic) {
+    // Support both old (topic) and new (subject) parameter names
+    const resourceSubject = subject || topic;
+    
+    if (!resourceSubject) {
       return NextResponse.json(
-        { error: 'Topic is required' },
+        { error: 'Subject/topic is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'UserId is required' },
         { status: 400 }
       );
     }
 
     // Forward request to backend server
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
     console.log('Forwarding to backend:', `${backendUrl}/api/curate-resources`);
 
     const response = await fetch(`${backendUrl}/api/curate-resources`, {
@@ -22,11 +32,15 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        subject: topic, // Map topic to subject for backend compatibility
-        level,
+        subject: resourceSubject,
+        level: level || difficulty,
         resources,
-        userId
+        userId,
+        difficulty: difficulty || level,
+        type: type || 'mixed',
+        prioritizeSyllabus: prioritizeSyllabus || false
       })
+    });
     });
 
     if (!response.ok) {

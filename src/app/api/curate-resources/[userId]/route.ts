@@ -13,7 +13,7 @@ export async function GET(
     }
 
     // Forward to backend
-    const rawBackendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const rawBackendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
     const backendUrl = rawBackendUrl.trim().replace(/\s+/g, '');
     console.log('Frontend API: Raw backend URL:', JSON.stringify(rawBackendUrl));
     console.log('Frontend API: Cleaned backend URL:', JSON.stringify(backendUrl));
