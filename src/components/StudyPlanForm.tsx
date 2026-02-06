@@ -105,45 +105,24 @@ export default function StudyPlanForm({ onPlanGenerated }: StudyPlanFormProps) {
       console.log('Study plan response:', result);
 
       if (!response.ok) {
-        // When plan exists error occurs, create a mock plan to display
-        const mockPlan = {
-          _id: 'react-plan-' + Date.now(),
-          overview: {
-            subject: subject,
-            duration: '4 weeks',
-            examDate: date.toISOString().split('T')[0]
-          },
-          weeklyPlans: [
-            {
-              week: 'Week 1',
-              goals: ['Learn React fundamentals', 'Understand components'],
-              dailyTasks: [
-                { day: 'Day 1', tasks: ['Study JSX syntax', 'Create first component'], duration: '2-3 hours' },
-                { day: 'Day 2', tasks: ['Learn props and state', 'Practice with hooks'], duration: '2-3 hours' }
-              ]
-            }
-          ],
-          recommendations: ['Practice daily', 'Build projects', 'Join React community'],
-          isActive: true,
-          progress: 0
-        };
+        // Handle error properly without showing mock content
+        console.error('API Error:', result);
         
-        // Show the existing plan immediately
-        setPlan(mockPlan as any);
-        setError('');
-        
-        // Clear form
-        setSubject('');
-        setDate(undefined);
-        
-        toast({
-          variant: "success",
-          title: "Existing Plan Found",
-          description: `Your React study plan is already active and displayed below.`,
-        });
-        
-        // Also trigger refresh
-        onPlanGenerated(mockPlan as any);
+        if (result.error === 'PLAN_EXISTS') {
+          setError(`You already have an active study plan for ${subject}. Please check your existing plans.`);
+          toast({
+            variant: "destructive", 
+            title: "Plan Already Exists",
+            description: `You already have an active study plan for ${subject}. Please check your existing plans.`,
+          });
+        } else {
+          setError(result.message || 'Failed to generate study plan. Please try again.');
+          toast({
+            variant: "destructive",
+            title: "Generation Failed", 
+            description: result.message || 'Failed to generate study plan. Please try again.',
+          });
+        }
         return;
       }
 
