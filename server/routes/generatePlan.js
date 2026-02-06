@@ -52,6 +52,21 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Clean up old AI plans with React content before generating new ones
+    const subjectLower = subject.toLowerCase();
+    if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine')) {
+      console.log('Cleaning up old AI plans with potential React content...');
+      await StudyPlan.deleteMany({ 
+        userId,
+        $or: [
+          { 'overview.subject': { $regex: /ai|artificial/i } },
+          { 'weeklyPlans.goals': { $regex: /react|jsx|component|hook/i } },
+          { 'weeklyPlans.dailyTasks.tasks': { $regex: /react|jsx|component|hook/i } }
+        ]
+      });
+      console.log('Cleaned up old AI plans');
+    }
+
     // Check for existing plans
     const normalizedSubject = subject.trim().toLowerCase().replace(/\s+/g, ' ');
     const existingPlan = await StudyPlan.findOne({
@@ -254,6 +269,44 @@ router.post('/generate', async (req, res) => {
       success: false,
       error: 'Failed to generate study plan',
       details: error.message
+    });
+  }
+});
+
+// Emergency database cleanup endpoint
+router.delete('/cleanup/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId is required'
+      });
+    }
+
+    // Delete all plans with React content
+    const deleteResult = await StudyPlan.deleteMany({ 
+      userId,
+      $or: [
+        { 'weeklyPlans.goals': { $regex: /react|jsx|component|hook|props|state/i } },
+        { 'weeklyPlans.dailyTasks.tasks': { $regex: /react|jsx|component|hook|props|state/i } },
+        { 'recommendations': { $regex: /react|jsx|component|hook|props|state/i } }
+      ]
+    });
+    
+    console.log(`Cleaned up ${deleteResult.deletedCount} plans with React content for user ${userId}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Cleaned up ${deleteResult.deletedCount} plans with React content`,
+      deletedCount: deleteResult.deletedCount
+    });
+  } catch (error) {
+    console.error('Error cleaning up plans:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to cleanup plans' 
     });
   }
 });

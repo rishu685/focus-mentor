@@ -52,6 +52,21 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Clean up old AI plans with React content before generating new ones
+    const subjectLower = subject.toLowerCase();
+    if (subjectLower.includes('ai') || subjectLower.includes('artificial') || subjectLower.includes('machine')) {
+      console.log('Cleaning up old AI plans with potential React content...');
+      await StudyPlan.deleteMany({ 
+        userId,
+        $or: [
+          { 'overview.subject': { $regex: /ai|artificial/i } },
+          { 'weeklyPlans.goals': { $regex: /react|jsx|component|hook/i } },
+          { 'weeklyPlans.dailyTasks.tasks': { $regex: /react|jsx|component|hook/i } }
+        ]
+      });
+      console.log('Cleaned up old AI plans');
+    }
+
     // Check for existing plans
     const normalizedSubject = subject.trim().toLowerCase().replace(/\s+/g, ' ');
     const existingPlan = await StudyPlan.findOne({

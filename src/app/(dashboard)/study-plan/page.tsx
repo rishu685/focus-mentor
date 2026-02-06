@@ -173,6 +173,53 @@ export default function StudyPlanPage() {
     }, 500);
   };
 
+  const handleCleanupAIPlans = async () => {
+    const userId = session?.user?.email || 'rishabh45628@gmail.com';
+    
+    try {
+      setLoading(true);
+      console.log('Cleaning up AI plans for user:', userId);
+      
+      const response = await fetch('/api/cleanup-ai-plans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId })
+      });
+      
+      const result = await response.json();
+      console.log('Cleanup result:', result);
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `Cleaned up ${result.deletedCount || 0} old AI plans. You can now generate fresh AI content.`,
+        });
+        
+        // Refresh the plans list
+        setTimeout(() => {
+          fetchPlans(true);
+        }, 1000);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error || "Failed to cleanup AI plans"
+        });
+      }
+    } catch (error) {
+      console.error('Cleanup error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error", 
+        description: "Failed to cleanup AI plans. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePlanDelete = async (planId: string) => {
     console.log('Deleting plan with ID:', planId);
     
@@ -276,8 +323,17 @@ export default function StudyPlanPage() {
             >
               {loading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
               Refresh Plans
-            </Button>
+            </Button>            
             <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleCleanupAIPlans}
+              disabled={loading}
+              className="text-xs"
+            >
+              {loading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+              🧹 Clean AI Plans
+            </Button>            <Button
               variant="outline"
               size="sm"
               onClick={async () => {
