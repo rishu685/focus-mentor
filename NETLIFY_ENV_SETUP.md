@@ -23,9 +23,9 @@ MONGODB_URI=mongodb+srv://mindmentor:mindmentor@cluster0.4cz11zp.mongodb.net/?re
 
 ### API Configuration  
 ```
-EXPRESS_BACKEND_URL=https://focus-mentor.netlify.app
-NEXT_PUBLIC_API_URL=https://focus-mentor.netlify.app
-API_URL=https://focus-mentor.netlify.app
+NEXT_PUBLIC_BACKEND_URL=https://focus-mentor-backend.onrender.com
+EXPRESS_BACKEND_URL=https://focus-mentor-backend.onrender.com
+NEXT_PUBLIC_API_URL=https://focus-mentor-backend.onrender.com
 ```
 
 ### AI Services (Critical for Study Buddy)
