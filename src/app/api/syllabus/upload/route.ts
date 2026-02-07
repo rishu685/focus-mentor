@@ -26,8 +26,11 @@ export async function POST(request: NextRequest) {
     backendFormData.append('year', year || '');
 
     // Make request to backend
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
-    const backendResponse = await fetch(`${backendUrl}/api/syllabus/upload`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    const backendResponse = await fetch(`${backendUrl}/syllabus/upload`, {
       method: 'POST',
       body: backendFormData,
     });

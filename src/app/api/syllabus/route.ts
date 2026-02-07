@@ -15,8 +15,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Forward request to backend
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
-    const backendResponse = await fetch(`${backendUrl}/api/syllabus/user/${userId}`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    const backendResponse = await fetch(`${backendUrl}/syllabus/user/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -56,7 +59,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Forward request to backend
-    const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}/activate`, {
+    const backendResponse = await fetch(`${backendUrl}/syllabus/${syllabusId}/activate`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

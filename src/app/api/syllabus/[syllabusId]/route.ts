@@ -11,8 +11,11 @@ export async function GET(request: NextRequest, { params }: { params: { syllabus
     }
 
     // Forward request to backend
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
-    const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}/analysis`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    const backendResponse = await fetch(`${backendUrl}/syllabus/${syllabusId}/analysis`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -50,8 +53,11 @@ export async function PUT(request: NextRequest, { params }: { params: { syllabus
     }
 
     // Forward request to backend
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
-    const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}/activate`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    const backendResponse = await fetch(`${backendUrl}/syllabus/${syllabusId}/activate`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -90,8 +96,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { sylla
     }
 
     // Forward request to backend
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
-    const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    const backendResponse = await fetch(`${backendUrl}/syllabus/${syllabusId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

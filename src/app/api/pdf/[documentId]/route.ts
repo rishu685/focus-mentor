@@ -21,7 +21,10 @@ export async function GET(
     }
 
     const documentId = params.documentId;
-    const apiUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
     
     // Forward the request with user ID in headers
     const response = await fetch(`${apiUrl}/pdf/${documentId}`, {
@@ -77,7 +80,10 @@ export async function POST(
     }
 
     const body = await req.json();
-    const apiUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
     
     const response = await fetch(
       `${apiUrl}/pdf/${params.documentId}/chat`,

@@ -129,14 +129,20 @@ export const apiClient = {
   },
 
   async deleteCuratedResources(resourceId: string) {
-    const response = await fetch(`${API_BASE_URL}/curate-resources/${resourceId}`, {
+    const response = await fetch(`/api/resources/${resourceId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
     });
     if (!response.ok) {
-      throw new Error('Failed to delete resources');
+      const data = await response.json();
+      throw {
+        status: response.status,
+        error: data.error,
+        message: data.message || 'Failed to delete resources',
+        response: { data }
+      };
     }
     return response.json();
   },

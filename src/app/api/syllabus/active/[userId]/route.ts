@@ -11,8 +11,11 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
     }
 
     // Forward request to backend
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
-    const backendResponse = await fetch(`${backendUrl}/api/syllabus/active/${userId}`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    const backendResponse = await fetch(`${backendUrl}/syllabus/active/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
