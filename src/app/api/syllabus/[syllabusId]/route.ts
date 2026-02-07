@@ -13,9 +13,9 @@ export async function GET(request: NextRequest, { params }: { params: { syllabus
     // Forward request to backend
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
-        ? 'https://focus-mentor-backend.onrender.com'
+      ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:3001';
-    const backendResponse = await fetch(`${backendUrl}/syllabus/${syllabusId}/analysis`, {
+    const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}/analysis`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: { syllabus
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor-backend.onrender.com'
         : 'http://localhost:3001';
-    const backendResponse = await fetch(`${backendUrl}/syllabus/${syllabusId}/activate`, {
+    const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}/activate`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { sylla
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor-backend.onrender.com'
         : 'http://localhost:3001';
-    const backendResponse = await fetch(`${backendUrl}/syllabus/${syllabusId}`, {
+    const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
