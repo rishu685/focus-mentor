@@ -12,6 +12,8 @@ Set these environment variables in your Netlify dashboard (Site settings → Env
 - `MONGODB_URI` - Your MongoDB connection string
 - `NEXTAUTH_SECRET` - A random secret for NextAuth.js
 - `NEXTAUTH_URL` - Your Netlify site URL (e.g., https://your-site.netlify.app)
+- `NEXT_PUBLIC_BACKEND_URL` - External backend URL: `https://focus-mentor-backend.onrender.com`
+- `NODE_ENV` - Set to `production`
 
 ### Optional Variables (based on your features):
 - `GOOGLE_CLIENT_ID` - For Google OAuth

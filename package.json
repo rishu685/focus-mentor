@@ -7,8 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postbuild": "cp -r server netlify/"
+    "lint": "next lint"
   },
   "dependencies": {
     "@google/generative-ai": "^0.1.3",
