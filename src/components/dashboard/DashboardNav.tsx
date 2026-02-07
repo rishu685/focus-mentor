@@ -126,7 +126,7 @@ export function DashboardNav({ className, onCollapse, ...props }: DashboardNavPr
             <div className="flex flex-col items-center mb-4">
               <Avatar className="h-10 w-10 bg-[#F2EDE0]">
                 <AvatarImage 
-                  src={session?.user?.image || "/images/default-avatar.png"} 
+                  src={session?.user?.image || "/images/default-avatar.svg"} 
                   alt={session?.user?.name || '@user'} 
                 />
                 <AvatarFallback>{session?.user?.name?.[0] || 'U'}</AvatarFallback>
