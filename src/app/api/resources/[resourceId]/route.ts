@@ -27,7 +27,16 @@ export async function DELETE(
       },
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('JSON parsing error:', jsonError);
+      data = { 
+        success: false, 
+        error: 'Invalid response format from backend' 
+      };
+    }
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });

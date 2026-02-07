@@ -33,8 +33,35 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    const result = await backendResponse.json();
-    console.log('Backend response:', { status: backendResponse.status, success: result.success, error: result.error });
+    console.log('Backend response status:', backendResponse.status);
+    console.log('Backend response headers:', Object.fromEntries(backendResponse.headers.entries()));
+
+    // Check if response has content before parsing JSON
+    const responseText = await backendResponse.text();
+    console.log('Backend response text:', responseText);
+
+    let result;
+    try {
+      // Only parse JSON if we have content
+      if (responseText.trim()) {
+        result = JSON.parse(responseText);
+      } else {
+        result = { 
+          success: false, 
+          error: 'Empty response from backend',
+          message: 'Backend returned empty response'
+        };
+      }
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      result = { 
+        success: false, 
+        error: 'Invalid JSON response from backend',
+        message: `Backend returned invalid JSON: ${responseText.substring(0, 100)}`
+      };
+    }
+
+    console.log('Parsed backend result:', { status: backendResponse.status, success: result.success, error: result.error });
 
     if (backendResponse.ok && result.success) {
       return NextResponse.json({
