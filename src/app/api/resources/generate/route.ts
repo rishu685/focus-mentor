@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:3001';
-    const response = await fetch(`${backendUrl}/curate-resources`, {
+    const response = await fetch(`${backendUrl}/api/curate-resources`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

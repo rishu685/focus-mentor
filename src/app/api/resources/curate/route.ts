@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:3001';
-    console.log('Forwarding resource request to:', `${backendUrl}/curate-resources`);
+    console.log('Forwarding resource request to:', `${backendUrl}/api/curate-resources`);
     
-    const backendResponse = await fetch(`${backendUrl}/curate-resources`, {
+    const backendResponse = await fetch(`${backendUrl}/api/curate-resources`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
