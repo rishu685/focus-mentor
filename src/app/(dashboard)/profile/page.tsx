@@ -49,7 +49,7 @@ export default function ProfilePage() {
           <CardTitle className="text-2xl font-bold flex items-center gap-4">
             <Avatar className="h-16 w-16">
               <AvatarImage
-                src={session?.user?.image || "/images/default-avatar.png"}
+                src={session?.user?.image || "/images/default-avatar.svg"}
                 alt={session?.user?.name || "User"}
               />
               <AvatarFallback>{session?.user?.name?.[0] || "U"}</AvatarFallback>
