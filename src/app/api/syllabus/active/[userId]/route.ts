@@ -17,9 +17,9 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
         : 'http://localhost:3001';
     
     console.log('Fetching active syllabus for userId:', userId);
-    console.log('Backend URL:', `${backendUrl}/api/syllabus/${userId}/active`);
+    console.log('Backend URL:', `${backendUrl}/api/syllabus/active/${userId}`);
     
-    const backendResponse = await fetch(`${backendUrl}/api/syllabus/${userId}/active`, {
+    const backendResponse = await fetch(`${backendUrl}/api/syllabus/active/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
