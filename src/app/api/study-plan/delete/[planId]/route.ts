@@ -19,9 +19,9 @@ export async function DELETE(
         : 'http://localhost:3001';
     
     console.log('Deleting study plan with ID:', params.planId);
-    console.log('Backend URL:', `${backendUrl}/api/study-plan/delete/${params.planId}`);
+    console.log('Backend URL:', `${backendUrl}/api/study-plan/${params.planId}`);
     
-    const response = await fetch(`${backendUrl}/api/study-plan/delete/${params.planId}`, {
+    const response = await fetch(`${backendUrl}/api/study-plan/${params.planId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
