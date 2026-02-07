@@ -33,11 +33,12 @@ export async function POST(request: NextRequest) {
     });
 
     const result = await backendResponse.json();
+    console.log('Backend response:', JSON.stringify(result, null, 2));
 
     if (backendResponse.ok) {
       return NextResponse.json({
         success: true,
-        resources: result.resources,
+        resources: result.resource?.resources || [], // Backend returns resource.resources
         syllabusContext: result.syllabusContext,
         message: result.message || 'Resources curated successfully'
       });
