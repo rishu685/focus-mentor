@@ -15,12 +15,12 @@ export async function GET(
     // Forward to backend
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
-        ? 'https://focus-mentor-backend.onrender.com'
+        ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:3001';
     console.log('Frontend API: Backend URL:', backendUrl);
-    console.log('Frontend API: Full URL:', `${backendUrl}/curate-resources/${params.userId}`);
+    console.log('Frontend API: Full URL:', `${backendUrl}/api/curate-resources/${params.userId}`);
 
-    const response = await fetch(`${backendUrl}/curate-resources/${params.userId}`, {
+    const response = await fetch(`${backendUrl}/api/curate-resources/${params.userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

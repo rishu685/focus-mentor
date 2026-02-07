@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 
   process.env.NODE_ENV === 'production' 
-    ? 'https://focus-mentor-backend.onrender.com'
+    ? 'https://focus-mentor.onrender.com'
     : 'http://localhost:3001';
 
 export async function DELETE(
@@ -11,6 +11,7 @@ export async function DELETE(
 ) {
   try {
     const { resourceId } = params;
+    console.log('DELETE request received for resourceId:', resourceId);
 
     if (!resourceId) {
       return NextResponse.json(
@@ -20,12 +21,18 @@ export async function DELETE(
     }
 
     // Forward delete request to backend
-    const response = await fetch(`${BACKEND_URL}/curate-resources/${resourceId}`, {
+    const backendUrl = `${BACKEND_URL}/api/curate-resources/${resourceId}`;
+    console.log('Forwarding delete request to:', backendUrl);
+    
+    const response = await fetch(backendUrl, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
     });
+
+    console.log('Backend response status:', response.status);
+    console.log('Backend response headers:', Object.fromEntries(response.headers.entries()));
 
     let data;
     try {
