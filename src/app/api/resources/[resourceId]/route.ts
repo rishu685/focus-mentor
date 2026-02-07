@@ -21,7 +21,7 @@ export async function DELETE(
     }
 
     // Forward delete request to backend
-    const backendUrl = `${BACKEND_URL}/curate-resources/${resourceId}`;
+    const backendUrl = `${BACKEND_URL}/api/curate-resources/${resourceId}`;
     console.log('Forwarding delete request to:', backendUrl);
     
     const response = await fetch(backendUrl, {
