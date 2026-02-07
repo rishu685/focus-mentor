@@ -16,11 +16,11 @@ export async function POST(request: NextRequest) {
     // Forward to backend cleanup endpoint
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
-        ? 'https://focus-mentor-backend.onrender.com'
+        ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:3001';
-    console.log('Forwarding cleanup request to:', `${backendUrl}/study-plan/cleanup/${encodeURIComponent(userId)}`);
+    console.log('Forwarding cleanup request to:', `${backendUrl}/api/study-plan/cleanup/${encodeURIComponent(userId)}`);
     
-    const backendResponse = await fetch(`${backendUrl}/study-plan/cleanup/${encodeURIComponent(userId)}`, {
+    const backendResponse = await fetch(`${backendUrl}/api/study-plan/cleanup/${encodeURIComponent(userId)}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

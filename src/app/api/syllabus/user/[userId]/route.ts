@@ -17,11 +17,11 @@ export async function GET(
     // Forward to backend
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
-        ? 'https://focus-mentor-backend.onrender.com'
+        ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:3001';
-    console.log('Frontend API: Forwarding to:', `${backendUrl}/syllabus/user/${params.userId}`);
-    
-    const response = await fetch(`${backendUrl}/syllabus/user/${params.userId}`, {
+    console.log('Frontend API: Forwarding to:', `${backendUrl}/api/syllabus/user/${params.userId}`);
+
+    const response = await fetch(`${backendUrl}/api/syllabus/user/${params.userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

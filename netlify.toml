@@ -4,7 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  NEXT_PUBLIC_BACKEND_URL = "https://focus-mentor-backend.onrender.com"
+  NEXT_PUBLIC_BACKEND_URL = "https://focus-mentor.onrender.com"
 
 # All API routes are handled by Next.js API routes which proxy to external backend
 # No external redirects needed - Next.js handles the proxying internally
