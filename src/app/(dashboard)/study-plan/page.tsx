@@ -44,13 +44,13 @@ export default function StudyPlanPage() {
         }
       }
       
-      // Try direct backend API call first with error handling
-      console.log('Trying direct backend API call...');
+      // Use frontend API route instead of direct backend calls to avoid CORS issues
+      console.log('Using frontend API route...');
       try {
-        const backendUrl = `https://focus-mentor.onrender.com/api/study-plan/${encodeURIComponent(userId)}`;
-        console.log('Backend URL:', backendUrl);
+        const frontendApiUrl = `/api/study-plan/${encodeURIComponent(userId)}`;
+        console.log('Frontend API URL:', frontendApiUrl);
         
-        const directResponse = await fetch(backendUrl, {
+        const response = await fetch(frontendApiUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -58,41 +58,42 @@ export default function StudyPlanPage() {
           cache: force ? 'no-cache' : 'default'
         });
         
-        console.log('Direct response status:', directResponse.status, directResponse.statusText);
+        console.log('Frontend API response status:', response.status, response.statusText);
         
-        if (directResponse.ok) {
-          const directData = await directResponse.json();
-          console.log('Direct backend response:', directData);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Frontend API response:', data);
           
-          if (directData.success && directData.plans && directData.plans.length > 0) {
-            console.log('Found plans via direct backend:', directData.plans.length);
-            const sortedPlans = directData.plans.sort((a: StudyPlan, b: StudyPlan) => 
+          if (data.success && data.plans && data.plans.length > 0) {
+            console.log('Found plans via frontend API:', data.plans.length);
+            const sortedPlans = data.plans.sort((a: StudyPlan, b: StudyPlan) => 
               new Date(b.createdAt || b._id).getTime() - new Date(a.createdAt || a._id).getTime()
             );
             setStoredPlans(sortedPlans);
             setLoading(false);
             return;
-          } else if (directData.success && directData.plans && directData.plans.length === 0) {
-            console.log('No plans found in backend response');
+          } else if (data.success && data.plans && data.plans.length === 0) {
+            console.log('No plans found in API response');
             setStoredPlans([]);
             setLoading(false);
             return;
           }
         } else {
-          const errorText = await directResponse.text();
-          console.error('Direct backend error:', directResponse.status, errorText);
+          const errorText = await response.text();
+          console.error('Frontend API error:', response.status, errorText);
         }
-      } catch (directError) {
-        console.log('Direct backend failed:', directError);
+      } catch (apiError) {
+        console.log('Frontend API failed:', apiError);
       }
       
-      // Fallback to frontend API
-      const data = await apiClient.getStudyPlan(userId, force);
-      console.log('Raw API response:', data);
-      console.log('Response type:', typeof data, 'Is array:', Array.isArray(data));
-      console.log('Response keys:', Object.keys(data || {}));
-      
-      if (data.error) {
+      // Fallback to api-client if direct API call failed
+      try {
+        const data = await apiClient.getStudyPlan(userId, force);
+        console.log('Raw API client response:', data);
+        console.log('Response type:', typeof data, 'Is array:', Array.isArray(data));
+        console.log('Response keys:', Object.keys(data || {}));
+        
+        if (data.error) {
         console.error("API returned error:", data.error);
         toast({
           variant: "error",
@@ -120,19 +121,19 @@ export default function StudyPlanPage() {
       
       // Force display plans even if there are errors
       if (plansArray.length === 0 && !force) {
-        // Try one more time with direct backend API
-        console.log('No plans found, trying direct backend API one more time...');
+        // Try one more time with frontend API
+        console.log('No plans found, trying frontend API one more time...');
         try {
-          const directResponse = await fetch(`https://focus-mentor.onrender.com/api/study-plan/${userId}`);
-          if (directResponse.ok) {
-            const directData = await directResponse.json();
-            if (directData.success && directData.plans) {
-              plansArray = directData.plans;
-              console.log('Found plans via direct backend retry:', plansArray.length);
+          const retryResponse = await fetch(`/api/study-plan/${userId}`);
+          if (retryResponse.ok) {
+            const retryData = await retryResponse.json();
+            if (retryData.success && retryData.plans) {
+              plansArray = retryData.plans;
+              console.log('Found plans via frontend API retry:', plansArray.length);
             }
           }
         } catch (retryError) {
-          console.log('Direct backend retry also failed:', retryError);
+          console.log('Frontend API retry also failed:', retryError);
         }
       }
       
@@ -147,6 +148,10 @@ export default function StudyPlanPage() {
         setStoredPlans(sortedPlans);
       } else {
         console.log('No plans found, setting empty array');
+        setStoredPlans([]);
+      }
+      } catch (fallbackError) {
+        console.error('All API calls failed:', fallbackError);
         setStoredPlans([]);
       }
     } catch (error) {
