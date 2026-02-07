@@ -40,12 +40,17 @@ export default function StudyPlanForm({ onPlanGenerated }: StudyPlanFormProps) {
       try {
         const response = await fetch(`/api/syllabus/active/${session.user.id}`);
         if (response.ok) {
-          const syllabus = await response.json();
-          setSyllabusStatus({ 
-            available: true, 
-            university: syllabus.university, 
-            course: syllabus.course 
-          });
+          try {
+            const syllabus = await response.json();
+            setSyllabusStatus({ 
+              available: true, 
+              university: syllabus.university, 
+              course: syllabus.course 
+            });
+          } catch (jsonError) {
+            console.error('Error parsing syllabus JSON:', jsonError);
+            setSyllabusStatus({ available: false });
+          }
         } else {
           setSyllabusStatus({ available: false });
         }
@@ -101,7 +106,20 @@ export default function StudyPlanForm({ onPlanGenerated }: StudyPlanFormProps) {
         })
       });
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.error('JSON parsing error:', jsonError);
+        setError('Invalid response format received from server');
+        toast({
+          variant: "destructive",
+          title: "Response Error", 
+          description: "Invalid response format received from server. Please try again.",
+        });
+        return;
+      }
+      
       console.log('Study plan response:', result);
 
       if (!response.ok) {

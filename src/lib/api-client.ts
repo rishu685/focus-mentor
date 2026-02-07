@@ -25,7 +25,17 @@ export const apiClient = {
       body: JSON.stringify({ userId, subject }),
     });
     
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('JSON parsing error in curateResources:', jsonError);
+      data = { 
+        success: false, 
+        error: 'Invalid response format',
+        message: 'Failed to parse response from server'
+      };
+    }
     
     if (!response.ok) {
       // If it's a RESOURCE_EXISTS error, return it directly
@@ -83,7 +93,17 @@ export const apiClient = {
       body: JSON.stringify({ userId, subject, examDate }),
     });
     
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('JSON parsing error in createStudyPlan:', jsonError);
+      data = { 
+        success: false, 
+        error: 'Invalid response format',
+        message: 'Failed to parse response from server'
+      };
+    }
     
     if (!response.ok) {
       // If it's a PLAN_EXISTS error, return it directly
@@ -114,7 +134,17 @@ export const apiClient = {
       },
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('JSON parsing error in getStudyPlans:', jsonError);
+      data = { 
+        success: false, 
+        error: 'Invalid response format',
+        message: 'Failed to parse response from server'
+      };
+    }
     
     if (!response.ok) {
       throw {
@@ -136,7 +166,17 @@ export const apiClient = {
       },
     });
     if (!response.ok) {
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('JSON parsing error in deleteCuratedResources:', jsonError);
+        data = { 
+          success: false, 
+          error: 'Invalid response format',
+          message: 'Failed to parse response from server'
+        };
+      }
       throw {
         status: response.status,
         error: data.error,
