@@ -34,6 +34,7 @@ export function StoredResources({ resource, onDelete }: StoredResourcesProps) {
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
+      console.log('Attempting to delete resource with ID:', resource._id);
       await apiClient.deleteCuratedResources(resource._id);
       onDelete(resource._id);
       toast({
@@ -41,11 +42,23 @@ export function StoredResources({ resource, onDelete }: StoredResourcesProps) {
         title: "Success",
         description: "Resources deleted successfully",
       });
-    } catch {
+    } catch (error) {
+      console.error('Error deleting resources:', error);
+      
+      // Get more specific error message
+      let errorMessage = "Failed to delete resources";
+      if (error && typeof error === 'object') {
+        if ('message' in error && error.message) {
+          errorMessage = error.message as string;
+        } else if ('error' in error && error.error) {
+          errorMessage = error.error as string;
+        }
+      }
+      
       toast({
-        variant: "error",
+        variant: "destructive",
         title: "Error",
-        description: "Failed to delete resources",
+        description: errorMessage,
       });
     } finally {
       setIsDeleting(false);
