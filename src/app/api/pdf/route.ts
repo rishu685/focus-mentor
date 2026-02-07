@@ -19,7 +19,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
     
     try {
       // Forward the request with user ID in headers
@@ -86,7 +89,10 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const apiUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
     
     const response = await fetch(`${apiUrl}/pdf/upload`, {
       method: 'POST',
@@ -136,7 +142,10 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
     
     const response = await fetch(`${apiUrl}/pdf/${id}`, {
       method: 'DELETE',

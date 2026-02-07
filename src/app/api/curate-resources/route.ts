@@ -23,10 +23,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward request to backend server
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
-    console.log('Forwarding to backend:', `${backendUrl}/api/curate-resources`);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    console.log('Forwarding to backend:', `${backendUrl}/curate-resources`);
 
-    const response = await fetch(`${backendUrl}/api/curate-resources`, {
+    const response = await fetch(`${backendUrl}/curate-resources`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

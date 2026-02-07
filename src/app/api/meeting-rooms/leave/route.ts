@@ -12,8 +12,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to backend
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'http://backend:8000';
-    const response = await fetch(`${backendUrl}/api/meeting-rooms/leave`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    const response = await fetch(`${backendUrl}/meeting-rooms/leave`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

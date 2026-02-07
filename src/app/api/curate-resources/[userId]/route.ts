@@ -13,24 +13,14 @@ export async function GET(
     }
 
     // Forward to backend
-    const rawBackendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
-    const backendUrl = rawBackendUrl.trim().replace(/\s+/g, '');
-    console.log('Frontend API: Raw backend URL:', JSON.stringify(rawBackendUrl));
-    console.log('Frontend API: Cleaned backend URL:', JSON.stringify(backendUrl));
-    console.log('Frontend API: Full URL:', `${backendUrl}/api/curate-resources/${params.userId}`);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    console.log('Frontend API: Backend URL:', backendUrl);
+    console.log('Frontend API: Full URL:', `${backendUrl}/curate-resources/${params.userId}`);
 
-    // Test basic connectivity first
-    console.log('Frontend API: Testing basic connectivity to backend...');
-    try {
-      const healthResponse = await fetch(`${backendUrl}/health`, { 
-        method: 'GET'
-      });
-      console.log('Frontend API: Health check status:', healthResponse.status);
-    } catch (healthError) {
-      console.log('Frontend API: Health check failed:', healthError.message);
-    }
-
-    const response = await fetch(`${backendUrl}/api/curate-resources/${params.userId}`, {
+    const response = await fetch(`${backendUrl}/curate-resources/${params.userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

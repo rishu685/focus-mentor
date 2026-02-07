@@ -14,10 +14,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to backend API
-    const backendUrl = process.env.EXPRESS_BACKEND_URL || 'https://focus-mentor.onrender.com';
-    console.log('Forwarding to:', `${backendUrl}/api/study-plan`);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+      process.env.NODE_ENV === 'production' 
+        ? 'https://focus-mentor-backend.onrender.com'
+        : 'http://localhost:3001';
+    console.log('Forwarding to:', `${backendUrl}/study-plan`);
     
-    const backendResponse = await fetch(`${backendUrl}/api/study-plan`, {
+    const backendResponse = await fetch(`${backendUrl}/study-plan`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
