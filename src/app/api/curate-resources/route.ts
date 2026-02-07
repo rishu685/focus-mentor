@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
         prioritizeSyllabus: prioritizeSyllabus || false
       })
     });
-    });
 
     if (!response.ok) {
       console.error('Backend response not ok:', response.status, response.statusText);
