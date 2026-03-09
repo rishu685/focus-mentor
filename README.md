@@ -1,4 +1,4 @@
-# 🎓 Focus Mentor: AI-Powered Study Platform.
+# 🎓 Focus Mentor: AI-Powered Study Platform..
 
 <div align="center">
 
