@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor-backend.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     
     const response = await fetch(`${apiUrl}/pdf/upload`, {
       method: 'POST',

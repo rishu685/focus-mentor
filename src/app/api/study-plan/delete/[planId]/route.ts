@@ -16,7 +16,7 @@ export async function DELETE(
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     
     console.log('Deleting study plan with ID:', params.planId);
     console.log('Backend URL:', `${backendUrl}/api/study-plan/${params.planId}`);
