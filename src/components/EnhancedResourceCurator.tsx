@@ -46,7 +46,7 @@ export default function EnhancedResourceCurator() {
       return;
     }
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       setError("Please sign in to curate resources");
       return;
     }
@@ -54,6 +54,14 @@ export default function EnhancedResourceCurator() {
     setLoading(true);
     
     try {
+      const userId = session.user.id || session.user.email;
+      console.log('Frontend: Sending resource request with:', {
+        subject: subject.trim(),
+        userId,
+        hasUserId: !!userId,
+        sessionUser: session.user
+      });
+
       const response = await fetch('/api/resources/curate', {
         method: 'POST',
         headers: {
@@ -61,7 +69,7 @@ export default function EnhancedResourceCurator() {
         },
         body: JSON.stringify({
           subject: subject.trim(),
-          userId: session.user.id,
+          userId,
           difficulty,
           type,
           prioritizeSyllabus: true

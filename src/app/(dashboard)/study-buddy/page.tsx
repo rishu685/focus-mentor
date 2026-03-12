@@ -46,7 +46,7 @@ export default function StudyBuddyPage() {
       if (!session?.user?.id) return;
       
       try {
-        const response = await fetch(`/api/syllabus/active/${session.user.id}`);
+        const response = await fetch(`/api/syllabus/active/${session.user.id || session.user.email}`);
         if (response.ok) {
           const data = await response.json();
           if (data && data.university) {

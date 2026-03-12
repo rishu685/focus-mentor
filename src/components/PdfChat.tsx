@@ -125,7 +125,7 @@ export default function PdfChat({ documentId }: PdfChatProps) {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'x-user-id': session.user.id,
+          'x-user-id': session.user.id || session.user.email,
         },
         body: JSON.stringify({ content }),
       });
