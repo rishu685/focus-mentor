@@ -22,6 +22,7 @@ export default function SyllabusUpload({ userId, onUploadSuccess }: SyllabusUplo
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [generatingResources, setGeneratingResources] = useState(false);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -78,6 +79,26 @@ export default function SyllabusUpload({ userId, onUploadSuccess }: SyllabusUplo
         setCourse('');
         setSemester('');
         setYear('');
+        
+        // Automatically generate resources for the uploaded syllabus course
+        if (course.trim()) {\n          setGeneratingResources(true);\n          try {
+            const resourceResponse = await fetch('/api/resources/curate', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                subject: course,
+                userId: userId,
+                difficulty: 'intermediate',
+                type: 'mixed',
+                prioritizeSyllabus: true
+              }),
+            });
+            
+            if (resourceResponse.ok) {\n              console.log('Resources generated automatically for uploaded syllabus');\n            }
+          } catch (resourceError) {\n            console.log('Could not auto-generate resources, but syllabus uploaded successfully');\n          } finally {\n            setGeneratingResources(false);\n          }\n        }
+        
         if (onUploadSuccess) {
           onUploadSuccess(result);
         }
@@ -147,6 +168,15 @@ export default function SyllabusUpload({ userId, onUploadSuccess }: SyllabusUplo
             <CheckCircle className="w-4 h-4 text-green-600" />
             <AlertDescription className="text-green-800">
               Syllabus uploaded and analyzed successfully! Your AI study buddy is now aware of your curriculum.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {generatingResources && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <AlertDescription className="text-blue-800 ml-2">
+              Generating study resources for {course}... This may take a few moments.
             </AlertDescription>
           </Alert>
         )}
@@ -250,13 +280,18 @@ export default function SyllabusUpload({ userId, onUploadSuccess }: SyllabusUplo
         {/* Upload Button */}
         <Button
           onClick={handleUpload}
-          disabled={!file || !university || !course || uploading}
+          disabled={!file || !university || !course || uploading || generatingResources}
           className="w-full"
         >
           {uploading ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               Analyzing Syllabus...
+            </>
+          ) : generatingResources ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Generating Resources...
             </>
           ) : (
             <>

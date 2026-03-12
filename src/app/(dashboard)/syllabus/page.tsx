@@ -41,9 +41,15 @@ export default function SyllabusPage() {
     );
   }
 
-  const handleUploadSuccess = () => {
-    // Refresh the syllabus manager when a new syllabus is uploaded
-    window.location.reload(); // Simple refresh - could be improved with state management
+  const handleUploadSuccess = async () => {
+    // Force refresh of syllabus manager when a new syllabus is uploaded
+    const syllabusManager = document.querySelector('[data-syllabus-manager]');
+    if (syllabusManager) {
+      const event = new CustomEvent('refreshSyllabi');
+      syllabusManager.dispatchEvent(event);
+    }
+    // Also reload to ensure fresh data
+    window.location.reload();
   };
 
   return (

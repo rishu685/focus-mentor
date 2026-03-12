@@ -41,6 +41,7 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSyllabus, setSelectedSyllabus] = useState<Syllabus | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchSyllabi = useCallback(async () => {
     if (!userId) {
@@ -99,7 +100,8 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
 
   const deleteSyllabus = async (syllabusId: string) => {
     if (!confirm('Are you sure you want to delete this syllabus?')) return;
-
+    
+    setDeletingId(syllabusId);
     try {
       const response = await fetch(`/api/syllabus/${syllabusId}`, {
         method: 'DELETE',
@@ -112,7 +114,8 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
       const result = await response.json();
       
       if (response.ok && result.success) {
-        await fetchSyllabi();
+        // Immediately update UI by removing the deleted syllabus
+        setSyllabi(prev => prev.filter(s => s._id !== syllabusId));
         if (onSyllabusChange) onSyllabusChange();
         setError(null);
       } else {
@@ -121,6 +124,8 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
     } catch (err) {
       setError('Network error. Please try again.');
       console.error('Delete error:', err);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -218,9 +223,14 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
                     <Button
                       variant="destructive"
                       size="sm"
+                      disabled={deletingId === syllabus._id}
                       onClick={() => deleteSyllabus(syllabus._id)}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      {deletingId === syllabus._id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
