@@ -4,7 +4,19 @@ export async function POST(request: NextRequest) {
   try {
     const { subject, userId, difficulty, type } = await request.json();
 
+    console.log('Frontend API: Received request with:', {
+      subject,
+      userId,
+      difficulty,
+      type,
+      hasSubject: !!subject,
+      hasUserId: !!userId,
+      subjectType: typeof subject,
+      userIdType: typeof userId
+    });
+
     if (!subject || !userId) {
+      console.log('Frontend API: Missing required fields:', { subject: !!subject, userId: !!userId });
       return NextResponse.json(
         { error: 'Subject and userId are required' },
         { status: 400 }
@@ -32,8 +44,9 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    const result = await backendResponse.json();
-    console.log('Backend response:', JSON.stringify(result, null, 2));
+    const result = await backendResponse.json().catch(() => ({ error: 'Invalid JSON response' }));
+    console.log('Backend response status:', backendResponse.status);
+    console.log('Backend response data:', JSON.stringify(result, null, 2));
 
     if (backendResponse.ok) {
       return NextResponse.json({
@@ -43,9 +56,12 @@ export async function POST(request: NextRequest) {
         message: result.message || 'Resources curated successfully'
       });
     } else {
+      console.log('Backend error details:', result);
       return NextResponse.json({
         success: false,
-        error: result.error || 'Failed to curate resources'
+        error: result.error || 'Failed to curate resources',
+        backendStatus: backendResponse.status,
+        backendError: result
       }, { status: backendResponse.status });
     }
 
