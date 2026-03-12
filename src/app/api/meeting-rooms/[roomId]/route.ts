@@ -16,8 +16,8 @@ export async function GET(
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor-backend.onrender.com'
-        : 'http://localhost:3001';
-    const response = await fetch(`${backendUrl}/meeting-rooms/${params.roomId}`, {
+        : 'http://localhost:8000';
+    const response = await fetch(`${backendUrl}/api/meeting-rooms/${params.roomId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
