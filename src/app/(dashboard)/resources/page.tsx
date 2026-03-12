@@ -25,7 +25,7 @@ export default function ResourcesPage() {
   const fetchResources = useCallback(async () => {
     if (!session?.user?.id) return;
     try {
-      const data = await apiClient.getCuratedResources(session.user.id);
+      const data = await apiClient.getCuratedResources(session.user.id || session.user.email);
       console.log("Fetched resources data:", data);
       
       if (data.error) {
@@ -89,7 +89,7 @@ export default function ResourcesPage() {
     if (!session?.user?.id) return;
     try {
       console.log("Creating resources for subject:", subject);
-      await apiClient.createCuratedResources(session.user.id, subject);
+      await apiClient.createCuratedResources(session.user.id || session.user.email, subject);
       console.log("Resources created successfully, calling fetchResources...");
       toast({
         variant: "success",
