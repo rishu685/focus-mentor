@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 
   process.env.NODE_ENV === 'production' 
     ? 'https://focus-mentor.onrender.com'
-    : 'http://localhost:3001';
+    : 'http://localhost:8000';
 
 export async function DELETE(
   request: NextRequest,

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: { syllabus
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
       ? 'https://focus-mentor.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}/analysis`, {
       method: 'GET',
       headers: {
@@ -56,7 +56,7 @@ export async function PUT(request: NextRequest, { params }: { params: { syllabus
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}/activate`, {
       method: 'PUT',
       headers: {
@@ -99,7 +99,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { sylla
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor-backend.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     const backendResponse = await fetch(`${backendUrl}/api/syllabus/${syllabusId}`, {
       method: 'DELETE',
       headers: {

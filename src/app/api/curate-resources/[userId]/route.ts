@@ -16,7 +16,7 @@ export async function GET(
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     console.log('Frontend API: Backend URL:', backendUrl);
     console.log('Frontend API: Full URL:', `${backendUrl}/api/curate-resources/${params.userId}`);
 

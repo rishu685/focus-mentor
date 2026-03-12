@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     const backendResponse = await fetch(`${backendUrl}/api/syllabus/user/${userId}`, {
       method: 'GET',
       headers: {

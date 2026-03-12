@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     console.log('Forwarding to:', `${backendUrl}/api/study-plan`);
     
     const backendResponse = await fetch(`${backendUrl}/api/study-plan`, {

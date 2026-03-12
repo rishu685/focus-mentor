@@ -24,7 +24,7 @@ export async function GET(
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor-backend.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     
     // Forward the request with user ID in headers
     const response = await fetch(`${apiUrl}/pdf/${documentId}`, {
@@ -83,7 +83,7 @@ export async function POST(
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor-backend.onrender.com'
-        : 'http://localhost:3001';
+        : 'http://localhost:8000';
     
     const response = await fetch(
       `${apiUrl}/pdf/${params.documentId}/chat`,
