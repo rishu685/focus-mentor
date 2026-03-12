@@ -35,6 +35,7 @@ const io = new Server(server, {
     origin: [
       "https://mind-mentor-pearl.vercel.app",
       "https://mind-mentor.kartiklabhshetwar.me", 
+      "https://focus-mentor.netlify.app",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
@@ -56,6 +57,7 @@ app.use(
     origin: [
       "https://mind-mentor-pearl.vercel.app",
       "https://mind-mentor.kartiklabhshetwar.me",
+      "https://focus-mentor.netlify.app",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
