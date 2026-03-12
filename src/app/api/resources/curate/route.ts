@@ -28,8 +28,26 @@ export async function POST(request: NextRequest) {
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:8000';
-    console.log('Forwarding resource request to:', `${backendUrl}/api/curate-resources`);
+    console.log('Frontend API: Backend URL being called:', `${backendUrl}/api/curate-resources`);
     
+    // TEMPORARY DEBUG: Return mock data to test if frontend works
+    if (subject.toLowerCase() === 'debug') {
+      return NextResponse.json({
+        success: true,
+        resources: [
+          {
+            title: "Debug Resource",
+            link: "https://example.com",
+            type: "Test",
+            description: "This is a debug resource",
+            benefits: ["Testing the frontend"]
+          }
+        ],
+        syllabusContext: null,
+        message: "Debug resources returned successfully"
+      });
+    }
+
     const backendResponse = await fetch(`${backendUrl}/api/curate-resources`, {
       method: 'POST',
       headers: {
