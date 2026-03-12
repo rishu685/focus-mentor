@@ -74,7 +74,6 @@ const MeetingRoomSchema = new Schema({
 });
 
 // Indexes for better performance
-MeetingRoomSchema.index({ roomId: 1 });
 MeetingRoomSchema.index({ createdBy: 1 });
 MeetingRoomSchema.index({ status: 1 });
 MeetingRoomSchema.index({ createdAt: -1 });

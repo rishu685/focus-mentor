@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor-backend.onrender.com'
-        : 'http://localhost:3001';
-    const response = await fetch(`${backendUrl}/meeting-rooms/leave`, {
+        : 'http://localhost:8000';
+    const response = await fetch(`${backendUrl}/api/meeting-rooms/leave`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
