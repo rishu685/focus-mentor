@@ -81,7 +81,9 @@ export default function SyllabusUpload({ userId, onUploadSuccess }: SyllabusUplo
         setYear('');
         
         // Automatically generate resources for the uploaded syllabus course
-        if (course.trim()) {\n          setGeneratingResources(true);\n          try {
+        if (course.trim()) {
+          setGeneratingResources(true);
+          try {
             const resourceResponse = await fetch('/api/resources/curate', {
               method: 'POST',
               headers: {
@@ -96,8 +98,15 @@ export default function SyllabusUpload({ userId, onUploadSuccess }: SyllabusUplo
               }),
             });
             
-            if (resourceResponse.ok) {\n              console.log('Resources generated automatically for uploaded syllabus');\n            }
-          } catch (resourceError) {\n            console.log('Could not auto-generate resources, but syllabus uploaded successfully');\n          } finally {\n            setGeneratingResources(false);\n          }\n        }
+            if (resourceResponse.ok) {
+              console.log('Resources generated automatically for uploaded syllabus');
+            }
+          } catch (resourceError) {
+            console.log('Could not auto-generate resources, but syllabus uploaded successfully');
+          } finally {
+            setGeneratingResources(false);
+          }
+        }
         
         if (onUploadSuccess) {
           onUploadSuccess(result);
