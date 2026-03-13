@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { mapResourceForClient } from '@/lib/resource-links';
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,9 +68,13 @@ export async function POST(request: NextRequest) {
     console.log('Backend response data:', JSON.stringify(result, null, 2));
 
     if (backendResponse.ok) {
+      const normalizedResources = (result.resource?.resources || result.resources || [])
+        .map(mapResourceForClient)
+        .filter((resource: { url: string | null }) => Boolean(resource.url));
+
       return NextResponse.json({
         success: true,
-        resources: result.resource?.resources || [], // Backend returns resource.resources
+        resources: normalizedResources,
         syllabusContext: result.syllabusContext,
         message: result.message || 'Resources curated successfully'
       });

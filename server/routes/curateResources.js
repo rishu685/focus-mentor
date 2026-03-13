@@ -6,6 +6,31 @@ import { Syllabus } from '../models/syllabus.js';
 
 const router = express.Router();
 
+function normalizeExternalUrl(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue || trimmedValue === '#' || /^(?:javascript|data|vbscript):/i.test(trimmedValue)) {
+    return null;
+  }
+
+  const candidate = /^[a-z][a-z\d+.-]*:/i.test(trimmedValue)
+    ? trimmedValue
+    : /^[a-z0-9.-]+\.[a-z]{2,}(?:[/:?#]|$)/i.test(trimmedValue)
+      ? `https://${trimmedValue}`
+      : trimmedValue;
+
+  try {
+    const parsedUrl = new URL(candidate);
+    return ['http:', 'https:'].includes(parsedUrl.protocol) ? parsedUrl.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 // Generate subject-specific resources with real, working URLs
 function generateSubjectResources(subject) {
   const lowerSubject = subject.toLowerCase();
@@ -339,13 +364,23 @@ router.post('/', async (req, res) => {
       curatedData = generateSubjectResources(subject);
     }
     // Validate and transform resources to match schema
-    const validatedResources = curatedData.resources.map(resource => ({
-      title: resource.title || 'Untitled Resource',
-      link: resource.url || '#', // Map url to link
-      type: resource.format || 'website',
-      description: resource.description || 'No description available',
-      benefits: resource.benefits || ['Resource for learning ' + subject]
-    }));
+    const validatedResources = curatedData.resources
+      .map(resource => ({
+        title: resource.title || 'Untitled Resource',
+        link: normalizeExternalUrl(resource.url || resource.link),
+        type: resource.format || resource.type || 'website',
+        description: resource.description || 'No description available',
+        benefits: resource.benefits || ['Resource for learning ' + subject]
+      }))
+      .filter(resource => Boolean(resource.link));
+
+    if (validatedResources.length === 0) {
+      return res.status(502).json({
+        success: false,
+        error: 'INVALID_RESOURCE_LINKS',
+        message: 'No valid resource links were generated. Please try again.'
+      });
+    }
 
     // Create new resource document with syllabus context
     console.log('Creating CuratedResource with', validatedResources.length, 'resources');
