@@ -20,7 +20,10 @@ export async function GET(
     }
 
     const documentId = params.documentId;
-    const apiUrl = process.env.API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL ||
+      (process.env.NODE_ENV === 'production'
+        ? 'https://focus-mentor.onrender.com'
+        : 'http://localhost:8000');
     
     const response = await fetch(`${apiUrl}/pdf/${documentId}/history`, {
       headers: {

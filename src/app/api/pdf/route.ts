@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
-        ? 'https://focus-mentor-backend.onrender.com'
+        ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:8000';
     
     try {
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
     
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
-        ? 'https://focus-mentor-backend.onrender.com'
+        ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:8000';
     
     const response = await fetch(`${apiUrl}/pdf/upload`, {
@@ -144,7 +144,7 @@ export async function DELETE(req: NextRequest) {
 
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
-        ? 'https://focus-mentor-backend.onrender.com'
+        ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:8000';
     
     const response = await fetch(`${apiUrl}/pdf/${id}`, {
