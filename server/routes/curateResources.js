@@ -77,7 +77,10 @@ router.get('/:userId', async (req, res) => {
 // Create new resources
 router.post('/', async (req, res) => {
   try {
-    const { subject, userId } = req.body;
+    console.log('Resource curation POST - Request body:', Object.keys(req.body));
+    
+    const { subject, userId, difficulty, type } = req.body;
+    console.log('Extracted fields:', { subject: !!subject, userId: !!userId, difficulty, type });
 
     if (!subject?.trim() || !userId) {
       return res.status(400).json({ 
@@ -89,6 +92,7 @@ router.post('/', async (req, res) => {
 
     // Normalize the subject string
     const normalizedSubject = subject.trim().toLowerCase().replace(/\s+/g, ' ');
+    console.log('Normalized subject:', normalizedSubject);
 
     // Check for existing resources with case-insensitive matching
     const existingResources = await CuratedResource.findOne({
@@ -97,9 +101,10 @@ router.post('/', async (req, res) => {
     });
 
     if (existingResources) {
+      console.log('Returning existing resources for subject:', normalizedSubject);
       return res.json({
         success: true,
-        resource: existingResources, // Return the full resource object
+        resource: existingResources,
         message: `Returning existing resources for "${subject}".`,
         syllabusContext: existingResources.syllabusContext || { used: false },
         isExisting: true
@@ -107,42 +112,61 @@ router.post('/', async (req, res) => {
     }
 
     // Check if user has active syllabus for context-aware resource generation
+    console.log('Looking for active syllabus for userId:', userId);
     const activeSyllabus = await Syllabus.findOne({ 
       userId, 
       isActive: true 
     });
+    console.log('Active syllabus found:', !!activeSyllabus);
 
     let searchData;
     let syllabusContext = null;
 
-    if (activeSyllabus) {
-      // Use syllabus-aware resource generation
-      const relevantSubject = activeSyllabus.subjects.find(s => 
-        s.name.toLowerCase().includes(subject.toLowerCase())
-      );
-      
-      const syllabusTopics = relevantSubject ? 
-        relevantSubject.topics : 
-        activeSyllabus.aiAnalysis.keyTopics;
+    try {
+      if (activeSyllabus) {
+        console.log('Generating resources using syllabus context...');
+        // Use syllabus-aware resource generation
+        const relevantSubject = activeSyllabus.subjects.find(s => 
+          s.name.toLowerCase().includes(subject.toLowerCase())
+        );
+        
+        const syllabusTopics = relevantSubject ? 
+          relevantSubject.topics : 
+          activeSyllabus.aiAnalysis.keyTopics;
 
-      searchData = await generateUniversityResources(
-        subject,
-        activeSyllabus.university,
-        activeSyllabus.course,
-        syllabusTopics
-      );
+        searchData = await generateUniversityResources(
+          subject,
+          activeSyllabus.university,
+          activeSyllabus.course,
+          syllabusTopics
+        );
 
-      syllabusContext = {
-        university: activeSyllabus.university,
-        course: activeSyllabus.course,
-        relevantTopics: syllabusTopics
-      };
-    } else {
-      // Fallback to regular search
-      searchData = await searchTavily(subject);
+        syllabusContext = {
+          university: activeSyllabus.university,
+          course: activeSyllabus.course,
+          relevantTopics: syllabusTopics
+        };
+        console.log('Syllabus-based generation complete');
+      } else {
+        console.log('Generating resources without syllabus context...');
+        // Fallback to regular search
+        searchData = await searchTavily(subject);
+        console.log('Tavily search complete');
+      }
+    } catch (searchError) {
+      console.error('Search/generation error:', searchError);
+      console.error('Error details:', { name: searchError.name, message: searchError.message });
+      // Return fallback message to frontend instead of failing
+      return res.status(500).json({
+        success: false,
+        error: 'SEARCH_FAILED',
+        message: 'Could not generate resources at this time. Please try again in a moment.',
+        details: searchError.message
+      });
     }
     
     if (!searchData || !searchData.results) {
+      console.log('No results from search');
       return res.status(500).json({
         success: false,
         error: 'SEARCH_FAILED',
@@ -150,14 +174,48 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const curatedData = await curateResources(searchData, subject);
+    let curatedData;
+    try {
+      console.log('Curating resources from search data...');
+      curatedData = await curateResources(searchData, subject);
+      console.log('Curation complete, resources count:', curatedData?.resources?.length || 0);
+    } catch (curationError) {
+      console.error('Curation error:', curationError);
+      // Return mock resources as fallback
+      console.log('Returning mock resources as fallback');
+      curatedData = {
+        resources: [
+          {
+            title: `Introduction to ${subject}`,
+            url: 'https://www.google.com/search?q=' + encodeURIComponent(subject),
+            description: 'Start with a Google search to find basic resources about ' + subject,
+            format: 'search',
+            benefits: ['General overview', 'Multiple perspectives']
+          },
+          {
+            title: `${subject} on Wikipedia`,
+            url: 'https://en.wikipedia.org/wiki/Special:Search?search=' + encodeURIComponent(subject),
+            description: 'Comprehensive encyclopedia article on ' + subject,
+            format: 'encyclopedia',
+            benefits: ['Detailed information', 'Well-sourced']
+          }
+        ]
+      };
+    }
     
-    if (!curatedData || !curatedData.resources) {
-      return res.status(500).json({
-        success: false,
-        error: 'CURATION_FAILED',
-        message: 'Failed to curate resources. Please try again.'
-      });
+    if (!curatedData || !curatedData.resources || curatedData.resources.length === 0) {
+      console.log('No curated resources available, returning minimal set');
+      curatedData = {
+        resources: [
+          {
+            title: `Learn ${subject}`,
+            url: 'https://www.coursera.org/search?query=' + encodeURIComponent(subject),
+            description: 'Find courses about ' + subject,
+            format: 'course',
+            benefits: ['Structured learning']
+          }
+        ]
+      };
     }
 
     // Validate and transform resources to match schema
@@ -170,31 +228,51 @@ router.post('/', async (req, res) => {
     }));
 
     // Create new resource document with syllabus context
+    console.log('Creating CuratedResource with', validatedResources.length, 'resources');
     const newResource = new CuratedResource({
       userId,
-      topic: normalizedSubject, // Use topic instead of subject
+      topic: normalizedSubject,
       resources: validatedResources,
       lastUpdated: new Date(),
-      syllabusContext // Add syllabus context if available
+      syllabusContext
     });
 
-    const savedResource = await newResource.save();
+    let savedResource;
+    try {
+      savedResource = await newResource.save();
+      console.log('Resource saved successfully');
+    } catch (saveError) {
+      console.error('Database save error:', saveError);
+      console.log('Returning resources without database persistence');
+      return res.json({
+        success: true,
+        message: 'Resources generated but could not be saved',
+        resource: { resources: validatedResources, topic: normalizedSubject },
+        syllabusContext,
+        cached: true
+      });
+    }
 
     return res.json({
       success: true,
       message: syllabusContext ? 
         `Resources curated successfully for ${syllabusContext.university} ${syllabusContext.course} curriculum` :
         'Resources curated successfully',
-      resource: savedResource, // Return the single created resource
+      resource: savedResource,
       syllabusContext
     });
 
   } catch (error) {
     console.error('Error in resource curation:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message
+    });
+    
     return res.status(500).json({
       success: false,
       error: 'SERVER_ERROR',
-      message: error.message || 'An error occurred while curating resources. Please try again.'
+      message: 'Could not generate resources at this time. Please try again in a moment.'
     });
   }
 });

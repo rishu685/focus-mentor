@@ -40,15 +40,31 @@ const upload = multer({
 // Upload and analyze syllabus
 router.post('/upload', upload.single('syllabusFile'), async (req, res) => {
   try {
+    console.log('=== SYLLABUS UPLOAD DEBUG ===');
+    console.log('File:', req.file ? { name: req.file.filename, size: req.file.size } : 'null');
+    console.log('Request body keys:', Object.keys(req.body));
+    console.log('Full request body:', JSON.stringify(req.body, null, 2));
+    
     if (!req.file) {
+      console.error('UPLOAD ERROR: No file uploaded');
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const { userId, university, course, semester, year } = req.body;
+    let { userId, university, course, semester, year } = req.body;
+    
+    // Ensure userId is trimmed and valid
+    if (typeof userId === 'string') {
+      userId = userId.trim();
+    }
+    
+    console.log('Extracted fields:', { userId: `[${userId}]`, university: `[${university}]`, course: `[${course}]` });
+    console.log('Field validation:', { hasUserId: !!userId, hasUniversity: !!university, hasCourse: !!course });
 
     if (!userId || !university || !course) {
+      console.error('UPLOAD ERROR: Missing required fields', { userId: !!userId, university: !!university, course: !!course });
       return res.status(400).json({ 
-        error: 'UserId, university, and course are required' 
+        error: 'UserId, university, and course are required',
+        debug: { userId: !!userId, university: !!university, course: !!course }
       });
     }
 
@@ -109,12 +125,13 @@ router.post('/upload', upload.single('syllabusFile'), async (req, res) => {
     );
 
     // Create new syllabus record
+    console.log('Creating new Syllabus document with userId:', userId);
     const syllabus = new Syllabus({
       userId,
       university,
       course,
-      semester,
-      year,
+      semester: semester || '',
+      year: year || '',
       fileName: req.file.filename,
       originalName: req.file.originalname,
       filePath: req.file.path,
@@ -130,17 +147,38 @@ router.post('/upload', upload.single('syllabusFile'), async (req, res) => {
       isActive: true
     });
 
-    await syllabus.save();
+    const savedSyllabus = await syllabus.save();
+    console.log('✅ Syllabus saved successfully');
+    console.log('Saved ID:', savedSyllabus._id);
+    console.log('Saved userId:', savedSyllabus.userId);
+    
+    // Verify save by immediate query
+    const verification = await Syllabus.findOne({ userId });
+    console.log('Verification query - Found syllabi with userId:', {
+      found: !!verification,
+      count: verification ? 1 : 0,
+      savedId: verification?._id,
+      savedUniversity: verification?.university
+    });
 
+    console.log('Sending success response');
     res.json({
       success: true,
-      syllabusId: syllabus._id,
+      syllabusId: savedSyllabus._id,
       analysis: analysis,
-      message: 'Syllabus uploaded and analyzed successfully'
+      message: 'Syllabus uploaded and analyzed successfully',
+      debug: {
+        userId: savedSyllabus.userId,
+        university: savedSyllabus.university,
+        course: savedSyllabus.course,
+        isActive: savedSyllabus.isActive
+      }
     });
 
   } catch (error) {
-    console.error('Error uploading syllabus:', error);
+    console.error('❌ UPLOAD ERROR:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', { name: error.name, message: error.message });
     
     // Clean up uploaded file if error occurs
     if (req.file && fs.existsSync(req.file.path)) {
@@ -158,13 +196,17 @@ router.post('/upload', upload.single('syllabusFile'), async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log('GET /user/:userId request for userId:', userId);
+    const trimmedUserId = userId.trim();
+    console.log('GET /user/:userId - fetching for userId:', trimmedUserId);
     
-    const syllabi = await Syllabus.find({ userId })
+    const syllabi = await Syllabus.find({ userId: trimmedUserId })
       .sort({ createdAt: -1 })
       .select('-extractedText -filePath'); // Exclude large text content
 
     console.log('Found syllabi count:', syllabi.length);
+    if (syllabi.length === 0) {
+      console.log('DEBUG: No syllabi found for userId:', trimmedUserId);
+    }
     
     res.json(syllabi);
   } catch (error) {
