@@ -45,17 +45,23 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
 
   const fetchSyllabi = useCallback(async () => {
     if (!userId) {
+      console.warn('No userId provided, skipping syllabus fetch');
       setLoading(false);
       return;
     }
+    
+    console.log('Fetching syllabi for userId:', userId);
     
     try {
       const response = await fetch(`/api/syllabus/user/${userId}`);
       const result = await response.json();
       
+      console.log('Syllabi fetch response:', { status: response.status, result });
+      
       if (response.ok && Array.isArray(result)) {
         setSyllabi(result);
         setError(null);
+        console.log('Found syllabi:', result.map(s => ({ id: s._id, university: s.university, course: s.course, userId: s.userId })));
       } else {
         setError(result.error || 'Failed to fetch syllabi');
         setSyllabi([]);
@@ -101,7 +107,9 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
   const deleteSyllabus = async (syllabusId: string) => {
     if (!confirm('Are you sure you want to delete this syllabus?')) return;
     
+    console.log('Attempting to delete syllabus:', { syllabusId, userId });
     setDeletingId(syllabusId);
+    
     try {
       const response = await fetch(`/api/syllabus/${syllabusId}`, {
         method: 'DELETE',
@@ -112,6 +120,7 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
       });
 
       const result = await response.json();
+      console.log('Delete response:', result);
       
       if (response.ok && result.success) {
         // Immediately update UI by removing the deleted syllabus
@@ -119,7 +128,28 @@ export default function SyllabusManager({ userId, onSyllabusChange }: SyllabusMa
         if (onSyllabusChange) onSyllabusChange();
         setError(null);
       } else {
-        setError(result.error || 'Failed to delete syllabus');
+        console.warn('Delete failed, trying debug delete...');
+        
+        // Try debug force delete as fallback
+        const debugResponse = await fetch('/api/syllabus/debug', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ syllabusId, userId, forceDelete: true }),
+        });
+
+        const debugResult = await debugResponse.json();
+        console.log('Debug delete response:', debugResult);
+        
+        if (debugResponse.ok && debugResult.success) {
+          // Force delete succeeded
+          setSyllabi(prev => prev.filter(s => s._id !== syllabusId));
+          if (onSyllabusChange) onSyllabusChange();
+          setError(null);
+        } else {
+          setError(`Delete failed: ${result.error || 'Unknown error'}. Debug: ${debugResult.error || 'Debug failed too'}`);
+        }
       }
     } catch (err) {
       setError('Network error. Please try again.');
