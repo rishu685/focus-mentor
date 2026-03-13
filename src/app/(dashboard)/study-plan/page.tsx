@@ -228,15 +228,10 @@ export default function StudyPlanPage() {
   const handlePlanDelete = async (planId: string) => {
     console.log('Deleting plan with ID:', planId);
     
-    // Prevent multiple simultaneous deletions
-    if (storedPlans.find(plan => plan._id === planId)?.isDeleting) {
-      return;
-    }
+    // Optimistically remove from UI immediately
+    setStoredPlans(prev => prev.filter(plan => plan._id !== planId));
     
     try {
-      // Immediately mark as deleting and remove from local state for instant feedback
-      setStoredPlans(prev => prev.filter(plan => plan._id !== planId));
-      
       const response = await apiClient.deleteStudyPlan(planId);
       console.log('Delete response:', response);
       
@@ -246,29 +241,13 @@ export default function StudyPlanPage() {
           title: "Success",
           description: response.message || "Study plan deleted successfully."
         });
-        
-        // Force clear all caches and reload page
-        console.log('Force clearing all caches and reloading');
-        
-        // Clear browser cache
-        if ('caches' in window) {
-          caches.keys().then(cacheNames => {
-            cacheNames.forEach(cacheName => {
-              caches.delete(cacheName);
-            });
-          });
-        }
-        
-        // Force page reload to ensure fresh data
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-        
       } else {
         throw new Error(response.message || 'Failed to delete plan');
       }
     } catch (error: unknown) {
       console.error("Error deleting plan:", error);
+      // Restore the plan by re-fetching if delete failed
+      fetchPlans(true);
       toast({
         variant: "error",
         title: "Error", 
