@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { getToken } from 'next-auth/jwt';
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -17,9 +16,7 @@ export async function POST(
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    const headersList = headers();
-    const headerUserId = headersList.get('x-user-id');
-    const userId = (token?.id as string) || token?.sub || headerUserId;
+    const userId = (token?.id as string) || token?.sub;
     
     if (!userId) {
       return NextResponse.json(
@@ -82,8 +79,9 @@ export async function POST(
     }
   } catch (error) {
     console.error('Error in PDF chat:', error);
+    const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }
