@@ -13,8 +13,13 @@ import transformersEmbeddings from './transformersEmbeddings.js';
 
 dotenv.config();
 
-// Initialize cache with 1 hour TTL
-const cache = new NodeCache({ stdTTL: 3600 });
+// Keep query cache bounded to avoid unbounded memory growth under chat load.
+const cache = new NodeCache({
+  stdTTL: 900,
+  checkperiod: 120,
+  maxKeys: 500,
+  useClones: false,
+});
 
 // Initialize Groq
 const model = new ChatGroq({
@@ -52,17 +57,52 @@ class TransformersEmbeddingsAdapter {
 // Initialize embeddings with Transformers.js service
 const embeddings = new TransformersEmbeddingsAdapter();
 
-// Vector store to hold embeddings
+// Vector stores are large; keep a small bounded LRU-style cache.
 const vectorStores = new Map();
+const MAX_VECTOR_STORES = 3;
+const VECTOR_STORE_TTL_MS = 20 * 60 * 1000; // 20 minutes
 
-// Clean up old vector stores periodically to prevent memory leaks
-setInterval(() => {
-  if (vectorStores.size > 10) { // Keep max 10 PDFs in memory
-    const oldestKey = vectorStores.keys().next().value;
-    vectorStores.delete(oldestKey);
-    console.log('🧹 Cleaned up old vector store to free memory');
+function cleanupVectorStores() {
+  const now = Date.now();
+
+  // Remove expired entries first.
+  for (const [key, entry] of vectorStores.entries()) {
+    if (!entry || (now - entry.lastAccessed) > VECTOR_STORE_TTL_MS) {
+      vectorStores.delete(key);
+    }
   }
-}, 300000); // Run every 5 minutes
+
+  // Enforce max size by evicting least recently used entries.
+  while (vectorStores.size > MAX_VECTOR_STORES) {
+    let lruKey = null;
+    let lruAccess = Number.POSITIVE_INFINITY;
+
+    for (const [key, entry] of vectorStores.entries()) {
+      if (entry.lastAccessed < lruAccess) {
+        lruAccess = entry.lastAccessed;
+        lruKey = key;
+      }
+    }
+
+    if (lruKey) {
+      vectorStores.delete(lruKey);
+    } else {
+      break;
+    }
+  }
+}
+
+const vectorStoreCleanupInterval = setInterval(() => {
+  cleanupVectorStores();
+  if (vectorStores.size > 0) {
+    console.log(`🧹 Vector store cache size: ${vectorStores.size}`);
+  }
+}, 5 * 60 * 1000);
+
+// Allow process to exit naturally without being held by this timer.
+if (typeof vectorStoreCleanupInterval.unref === 'function') {
+  vectorStoreCleanupInterval.unref();
+}
 
 // Define uploads directory path
 const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -271,8 +311,11 @@ export async function chatWithPdf(pdfInput, question, chatHistory = []) {
     const crypto = await import('crypto');
     const pdfHash = crypto.createHash('md5').update(buffer).digest('hex');
     
+    cleanupVectorStores();
+
     // Check if we have a cached vector store for this PDF
-    let vectorStore = vectorStores.get(pdfHash);
+    const cachedEntry = vectorStores.get(pdfHash);
+    let vectorStore = cachedEntry?.store;
     
     if (!vectorStore) {
       console.log('🔄 Creating new vector store for PDF...');
@@ -293,9 +336,13 @@ export async function chatWithPdf(pdfInput, question, chatHistory = []) {
       );
       
       // Cache the vector store
-      vectorStores.set(pdfHash, vectorStore);
+      vectorStores.set(pdfHash, {
+        store: vectorStore,
+        lastAccessed: Date.now(),
+      });
       console.log('✅ Vector store created and cached');
     } else {
+      cachedEntry.lastAccessed = Date.now();
       console.log('✅ Using cached vector store');
     }
 
