@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 
-const apiUrl = process.env.API_URL || 'http://localhost:8000';
+const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'https://focus-mentor.onrender.com'
+    : 'http://localhost:8000');
 
 export async function POST(
   request: NextRequest,
