@@ -193,6 +193,10 @@ router.post('/:id/chat', async (req, res) => {
       return res.status(401).json({ error: 'User ID is required' });
     }
 
+    if (!req.body?.content || typeof req.body.content !== 'string' || !req.body.content.trim()) {
+      return res.status(400).json({ error: 'Question content is required' });
+    }
+
     const pdf = await PdfDocument.findOne({ 
       _id: req.params.id,
       userId: userId 
