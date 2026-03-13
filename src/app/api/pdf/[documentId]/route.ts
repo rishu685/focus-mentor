@@ -21,6 +21,7 @@ export async function GET(
     }
 
     const documentId = params.documentId;
+    const userId = (token.id as string) || token.sub || '';
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
@@ -30,26 +31,26 @@ export async function GET(
     const response = await fetch(`${apiUrl}/pdf/${documentId}`, {
       headers: {
         'Content-Type': 'application/json',
-        'X-User-Id': token.sub || '', // Forward the user ID
+        'X-User-Id': userId,
       },
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || 'Failed to fetch PDF');
+      let errorMessage = 'Failed to fetch PDF';
+      try {
+        const data = await response.json();
+        errorMessage = data.error || data.message || errorMessage;
+      } catch {
+        const errorText = await response.text();
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      }
+      throw new Error(errorMessage);
     }
 
-    // Get the PDF data as an array buffer
-    const pdfBuffer = await response.arrayBuffer();
-
-    // Return the PDF with proper headers
-    return new NextResponse(pdfBuffer, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'inline',
-        'Content-Length': pdfBuffer.byteLength.toString(),
-      },
-    });
+    const data = await response.json();
+    return NextResponse.json(data);
   } catch (err) {
     console.error('Error fetching PDF:', err);
     const error = err as Error;
@@ -80,9 +81,10 @@ export async function POST(
     }
 
     const body = await req.json();
+    const userId = (token.id as string) || token.sub || '';
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
-        ? 'https://focus-mentor-backend.onrender.com'
+        ? 'https://focus-mentor.onrender.com'
         : 'http://localhost:8000';
     
     const response = await fetch(
@@ -91,11 +93,11 @@ export async function POST(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': token.sub || '', // Forward the user ID
+          'X-User-Id': userId,
         },
         body: JSON.stringify({
           ...body,
-          userId: token.sub, // Include user ID in the request body
+          userId,
         }),
       }
     );
