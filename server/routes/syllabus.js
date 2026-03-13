@@ -261,6 +261,54 @@ router.delete('/:syllabusId', async (req, res) => {
   }
 });
 
+// DEBUG: Force delete syllabus (bypass userId check)
+router.delete('/debug/force-delete/:syllabusId', async (req, res) => {
+  try {
+    const { syllabusId } = req.params;
+    console.log('FORCE DELETE: syllabusId:', syllabusId);
+
+    const syllabus = await Syllabus.findByIdAndDelete(syllabusId);
+
+    if (!syllabus) {
+      return res.status(404).json({ error: 'Syllabus not found in database' });
+    }
+
+    // Clean up uploaded file
+    if (syllabus.filePath && fs.existsSync(syllabus.filePath)) {
+      fs.unlinkSync(syllabus.filePath);
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Syllabus force deleted successfully',
+      deletedSyllabus: {
+        id: syllabus._id,
+        userId: syllabus.userId,
+        university: syllabus.university,
+        course: syllabus.course
+      }
+    });
+  } catch (error) {
+    console.error('Error force deleting syllabus:', error);
+    res.status(500).json({ error: 'Failed to force delete syllabus' });
+  }
+});
+
+// DEBUG: Get all syllabi with details
+router.get('/debug/all', async (req, res) => {
+  try {
+    const syllabi = await Syllabus.find({}).select('userId university course semester year isActive createdAt');
+    res.json({
+      success: true,
+      count: syllabi.length,
+      syllabi: syllabi
+    });
+  } catch (error) {
+    console.error('Error getting all syllabi:', error);
+    res.status(500).json({ error: 'Failed to get syllabi' });
+  }
+});
+
 // Get syllabus-based resources
 router.post('/resources', async (req, res) => {
   try {
