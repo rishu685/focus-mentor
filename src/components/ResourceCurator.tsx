@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, BookOpen, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { normalizeExternalUrl } from '@/lib/resource-links';
 
 interface SyllabusStatus {
   available: boolean;
@@ -160,7 +161,7 @@ export default function ResourceCurator({ onCreateResources, userId }: ResourceC
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">`;
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1">
             <Input
               type="text"
@@ -207,10 +208,16 @@ export default function ResourceCurator({ onCreateResources, userId }: ResourceC
                   <CardContent className="p-4 sm:p-6">
                     <p className="text-sm sm:text-base text-gray-600 mb-4">{resource.description}</p>
                     <a 
-                      href={resource.link} 
+                      href={normalizeExternalUrl(resource.link) || '#'} 
                       target="_blank" 
                       rel="noopener noreferrer" 
+                      aria-disabled={!normalizeExternalUrl(resource.link)}
                       className="inline-flex items-center text-[#7fb236] hover:text-[#6f9826] hover:underline text-sm sm:text-base"
+                      onClick={(event) => {
+                        if (!normalizeExternalUrl(resource.link)) {
+                          event.preventDefault();
+                        }
+                      }}
                     >
                       Learn More →
                     </a>

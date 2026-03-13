@@ -6,6 +6,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api-client";
+import { normalizeExternalUrl } from '@/lib/resource-links';
 
 export interface Resource {
   _id: string;
@@ -30,6 +31,21 @@ interface StoredResourcesProps {
 export function StoredResources({ resource, onDelete }: StoredResourcesProps) {
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleOpenResource = (link: string) => {
+    const normalizedUrl = normalizeExternalUrl(link);
+
+    if (!normalizedUrl) {
+      toast({
+        variant: 'error',
+        title: 'Invalid Link',
+        description: 'This saved resource has an invalid link and cannot be opened.'
+      });
+      return;
+    }
+
+    window.open(normalizedUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const handleDelete = async () => {
     try {
@@ -123,7 +139,8 @@ export function StoredResources({ resource, onDelete }: StoredResourcesProps) {
                 <Button 
                   variant="outline" 
                   className="w-full text-sm sm:text-base py-2 sm:py-4"
-                  onClick={() => window.open(item.link, '_blank')}
+                  onClick={() => handleOpenResource(item.link)}
+                  disabled={!normalizeExternalUrl(item.link)}
                 >
                   Visit Resource <ExternalLink className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>

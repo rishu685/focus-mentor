@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, BookOpen, ExternalLink, University, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from 'next-auth/react';
+import { normalizeExternalUrl } from '@/lib/resource-links';
 
 interface Resource {
   title: string;
@@ -36,6 +37,21 @@ export default function EnhancedResourceCurator() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { data: session } = useSession();
+
+  const handleOpenResource = (resource: Resource) => {
+    const normalizedUrl = normalizeExternalUrl(resource.url);
+
+    if (!normalizedUrl) {
+      toast({
+        variant: 'error',
+        title: 'Invalid Link',
+        description: 'This resource does not have a valid external link yet.'
+      });
+      return;
+    }
+
+    window.open(normalizedUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,7 +254,8 @@ export default function EnhancedResourceCurator() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(resource.url, '_blank')}
+                        onClick={() => handleOpenResource(resource)}
+                        disabled={!normalizeExternalUrl(resource.url)}
                         className="flex items-center gap-2"
                       >
                         <ExternalLink className="w-4 h-4" />
