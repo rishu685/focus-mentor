@@ -121,7 +121,9 @@ router.post('/', async (req, res) => {
 
     let searchData;
     let syllabusContext = null;
+    let curatedData;
 
+    // Try to search/generate resources, with multiple fallback layers
     try {
       if (activeSyllabus) {
         console.log('Generating resources using syllabus context...');
@@ -134,55 +136,55 @@ router.post('/', async (req, res) => {
           relevantSubject.topics : 
           activeSyllabus.aiAnalysis.keyTopics;
 
-        searchData = await generateUniversityResources(
-          subject,
-          activeSyllabus.university,
-          activeSyllabus.course,
-          syllabusTopics
-        );
+        try {
+          searchData = await generateUniversityResources(
+            subject,
+            activeSyllabus.university,
+            activeSyllabus.course,
+            syllabusTopics
+          );
 
-        syllabusContext = {
-          university: activeSyllabus.university,
-          course: activeSyllabus.course,
-          relevantTopics: syllabusTopics
-        };
-        console.log('Syllabus-based generation complete');
+          syllabusContext = {
+            university: activeSyllabus.university,
+            course: activeSyllabus.course,
+            relevantTopics: syllabusTopics
+          };
+          console.log('Syllabus-based generation complete');
+        } catch (genError) {
+          console.warn('Syllabus-based generation failed, trying regular search:', genError.message);
+          searchData = await searchTavily(subject);
+        }
       } else {
         console.log('Generating resources without syllabus context...');
         // Fallback to regular search
         searchData = await searchTavily(subject);
         console.log('Tavily search complete');
       }
+
+      // Curate the search results
+      if (searchData && searchData.results && searchData.results.length > 0) {
+        try {
+          console.log('Curating resources from search data...');
+          curatedData = await curateResources(searchData, subject);
+          console.log('Curation complete, resources count:', curatedData?.resources?.length || 0);
+        } catch (curationError) {
+          console.error('Curation error:', curationError.message);
+          console.log('Curation failed, using mock fallback resources');
+          curatedData = null; // Will trigger mock generation below
+        }
+      } else {
+        console.log('Search returned no results, using mock fallback');
+        curatedData = null; // Will trigger mock generation below
+      }
     } catch (searchError) {
-      console.error('Search/generation error:', searchError);
-      console.error('Error details:', { name: searchError.name, message: searchError.message });
-      // Return fallback message to frontend instead of failing
-      return res.status(500).json({
-        success: false,
-        error: 'SEARCH_FAILED',
-        message: 'Could not generate resources at this time. Please try again in a moment.',
-        details: searchError.message
-      });
-    }
-    
-    if (!searchData || !searchData.results) {
-      console.log('No results from search');
-      return res.status(500).json({
-        success: false,
-        error: 'SEARCH_FAILED',
-        message: 'Failed to search for resources. Please try again.'
-      });
+      console.error('Search/generation error:', searchError.message);
+      console.log('All search methods failed, using complete fallback');
+      curatedData = null; // Will trigger mock generation below
     }
 
-    let curatedData;
-    try {
-      console.log('Curating resources from search data...');
-      curatedData = await curateResources(searchData, subject);
-      console.log('Curation complete, resources count:', curatedData?.resources?.length || 0);
-    } catch (curationError) {
-      console.error('Curation error:', curationError);
-      // Return mock resources as fallback
-      console.log('Returning mock resources as fallback');
+    // Generate mock/fallback resources if any step failed
+    if (!curatedData || !curatedData.resources || curatedData.resources.length === 0) {
+      console.log('Generating fallback mock resources...');
       curatedData = {
         resources: [
           {
@@ -198,26 +200,17 @@ router.post('/', async (req, res) => {
             description: 'Comprehensive encyclopedia article on ' + subject,
             format: 'encyclopedia',
             benefits: ['Detailed information', 'Well-sourced']
-          }
-        ]
-      };
-    }
-    
-    if (!curatedData || !curatedData.resources || curatedData.resources.length === 0) {
-      console.log('No curated resources available, returning minimal set');
-      curatedData = {
-        resources: [
+          },
           {
             title: `Learn ${subject}`,
             url: 'https://www.coursera.org/search?query=' + encodeURIComponent(subject),
-            description: 'Find courses about ' + subject,
+            description: 'Find courses about ' + subject + ' on Coursera',
             format: 'course',
-            benefits: ['Structured learning']
+            benefits: ['Structured learning', 'Professional instruction']
           }
         ]
       };
     }
-
     // Validate and transform resources to match schema
     const validatedResources = curatedData.resources.map(resource => ({
       title: resource.title || 'Untitled Resource',
