@@ -16,6 +16,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const userId = (token.id as string) || token.sub || '';
+
     const formData = await req.formData();
     const file = formData.get('pdf');
 
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch(`${apiUrl}/pdf/upload`, {
       method: 'POST',
       headers: {
-        'X-User-Id': token.sub || '',
+        'X-User-Id': userId,
       },
       body: backendFormData,
     });

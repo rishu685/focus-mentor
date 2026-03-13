@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { getToken } from 'next-auth/jwt';
 
 const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL ||
   (process.env.NODE_ENV === 'production'
@@ -11,8 +12,14 @@ export async function POST(
   { params }: { params: { documentId: string } }
 ) {
   try {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
     const headersList = headers();
-    const userId = headersList.get('x-user-id');
+    const headerUserId = headersList.get('x-user-id');
+    const userId = (token?.id as string) || token?.sub || headerUserId;
     
     if (!userId) {
       return NextResponse.json(
@@ -42,9 +49,19 @@ export async function POST(
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error = await response.json();
+        let backendError = 'Failed to process chat request';
+        try {
+          const error = await response.json();
+          backendError = error.error || error.message || backendError;
+        } catch {
+          const errorText = await response.text();
+          if (errorText) {
+            backendError = errorText;
+          }
+        }
+
         return NextResponse.json(
-          { error: error.message || 'Failed to process chat request' },
+          { error: backendError },
           { status: response.status }
         );
       }

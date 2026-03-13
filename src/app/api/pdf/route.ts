@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const userId = (token.id as string) || token.sub || '';
+
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
         ? 'https://focus-mentor.onrender.com'
@@ -31,7 +33,7 @@ export async function GET(req: NextRequest) {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'x-user-id': token.id.toString(),
+          'x-user-id': userId,
         },
         cache: 'no-store'
       });
@@ -88,6 +90,8 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+
+    const userId = (token.id as string) || token.sub || '';
     
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
       process.env.NODE_ENV === 'production' 
@@ -97,7 +101,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch(`${apiUrl}/pdf/upload`, {
       method: 'POST',
       headers: {
-        'X-User-Id': token.sub || '',
+        'X-User-Id': userId,
       },
       body: formData,
     });
@@ -134,6 +138,8 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    const userId = (token.id as string) || token.sub || '';
+
     const id = req.nextUrl.searchParams.get('id');
     if (!id) {
       return NextResponse.json(
@@ -150,7 +156,7 @@ export async function DELETE(req: NextRequest) {
     const response = await fetch(`${apiUrl}/pdf/${id}`, {
       method: 'DELETE',
       headers: {
-        'X-User-Id': token.sub || '',
+        'X-User-Id': userId,
       },
     });
 

@@ -20,6 +20,7 @@ export async function GET(
     }
 
     const documentId = params.documentId;
+    const userId = (token.id as string) || token.sub || '';
     const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL ||
       (process.env.NODE_ENV === 'production'
         ? 'https://focus-mentor.onrender.com'
@@ -28,13 +29,22 @@ export async function GET(
     const response = await fetch(`${apiUrl}/pdf/${documentId}/history`, {
       headers: {
         'Content-Type': 'application/json',
-        'X-User-Id': token.sub || '',
+        'X-User-Id': userId,
       },
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || 'Failed to fetch chat history');
+      let errorMessage = 'Failed to fetch chat history';
+      try {
+        const data = await response.json();
+        errorMessage = data.error || data.message || errorMessage;
+      } catch {
+        const errorText = await response.text();
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
