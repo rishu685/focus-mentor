@@ -6,6 +6,170 @@ import { Syllabus } from '../models/syllabus.js';
 
 const router = express.Router();
 
+// Generate subject-specific resources with real, working URLs
+function generateSubjectResources(subject) {
+  const lowerSubject = subject.toLowerCase();
+  let resources = [];
+
+  // Add subject-specific real resources
+  const subjectResources = {
+    javascript: [
+      {
+        title: 'JavaScript Full Course - FreeCodeCamp',
+        url: 'https://www.youtube.com/watch?v=PkZNo7MFNFg',
+        description: 'Complete JavaScript tutorial covering fundamentals, DOM manipulation, and modern ES6+ features. Perfect for beginners to advanced learners.',
+        format: 'Video Course',
+        benefits: ['8+ hours comprehensive', 'Real-world projects', 'Modern best practices']
+      },
+      {
+        title: 'JavaScript - MDN Web Docs',
+        url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript',
+        description: 'Comprehensive JavaScript documentation with examples, guides, and reference materials from Mozilla Developer Network.',
+        format: 'Documentation',
+        benefits: ['Official reference', 'Detailed examples', 'Best practices']
+      },
+      {
+        title: 'JavaScript Algorithms - FreeCodeCamp',
+        url: 'https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/',
+        description: 'Interactive JavaScript and data structures course with hands-on coding challenges and certification.',
+        format: 'Interactive Course',
+        benefits: ['Hands-on practice', 'Certification', 'Job-ready skills']
+      }
+    ],
+    python: [
+      {
+        title: 'Python for Beginners - Programming with Mosh',
+        url: 'https://www.youtube.com/watch?v=_uQrJ0TkZlc',
+        description: 'Learn Python programming from scratch with hands-on examples and practical applications.',
+        format: 'Video Course',
+        benefits: ['Beginner-friendly', 'Practical examples', 'Fast-paced learning']
+      },
+      {
+        title: 'Python Full Course - FreeCodeCamp',
+        url: 'https://www.youtube.com/watch?v=rfscVS0vtbw',
+        description: 'Comprehensive Python tutorial covering basics to advanced topics including OOP, file handling, and libraries.',
+        format: 'Video Course',
+        benefits: ['Complete coverage', 'All Python basics', 'Advanced concepts']
+      },
+      {
+        title: 'Python Official Documentation',
+        url: 'https://docs.python.org/3/',
+        description: 'Official Python documentation with tutorials, reference guides, and API documentation.',
+        format: 'Documentation',
+        benefits: ['Official reference', 'Complete guide', 'Examples']
+      }
+    ],
+    react: [
+      {
+        title: 'React Course for Beginners - FreeCodeCamp',
+        url: 'https://www.youtube.com/watch?v=bMknfKXIFA8',
+        description: 'Complete React.js course covering components, hooks, state management, and building real applications.',
+        format: 'Video Course',
+        benefits: ['Comprehensive', 'Hands-on projects', 'Modern React patterns']
+      },
+      {
+        title: 'React Official Documentation',
+        url: 'https://react.dev/',
+        description: 'Official React documentation with interactive examples, hooks guide, and best practices.',
+        format: 'Documentation',
+        benefits: ['Official source', 'Interactive tutorials', 'Latest practices']
+      },
+      {
+        title: 'React Router Tutorial',
+        url: 'https://www.youtube.com/watch?v=ZqFa2xzccqE',
+        description: 'Learn client-side routing in React using React Router for building multi-page applications.',
+        format: 'Video Tutorial',
+        benefits: ['Routing mastery', 'SPA concepts', 'Practical apps']
+      }
+    ],
+    'data structures': [
+      {
+        title: 'Data Structures - Abdul Bari',
+        url: 'https://www.youtube.com/playlist?list=PLDN4rrl48XKpZkp46eTJx8aZAJ_DwJ0PC',
+        description: 'Complete data structures course covering arrays, linked lists, trees, graphs, and algorithms.',
+        format: 'Video Playlist',
+        benefits: ['Animated visuals', 'Complete coverage', 'Interview prep']
+      },
+      {
+        title: 'Data Structures & Algorithms - FreeCodeCamp',
+        url: 'https://www.freecodecamp.org/learn/scientific-computing-with-python/data-structures/',
+        description: 'Interactive course on data structures and algorithms with hands-on coding exercises.',
+        format: 'Interactive Course',
+        benefits: ['Hands-on practice', 'Real problems', 'Certification']
+      },
+      {
+        title: 'LeetCode - Coding Problems',
+        url: 'https://leetcode.com/problemset/all/',
+        description: 'Platform with thousands of coding problems to practice data structures and algorithms.',
+        format: 'Practice Platform',
+        benefits: ['Real interview questions', 'Practice solutions', 'Community']
+      }
+    ],
+    'web development': [
+      {
+        title: 'Web Development Full Course - FreeCodeCamp',
+        url: 'https://www.youtube.com/watch?v=nu_pCVPKzTk',
+        description: 'Complete web development course covering HTML, CSS, JavaScript, and full-stack concepts.',
+        format: 'Video Course',
+        benefits: ['Full-stack overview', 'Modern tools', 'Real projects']
+      },
+      {
+        title: 'MDN Web Docs - Web Development',
+        url: 'https://developer.mozilla.org/en-US/docs/Learn',
+        description: 'Mozilla\'s comprehensive web development learning guide with tutorials and references.',
+        format: 'Tutorial Series',
+        benefits: ['Official tutorial', 'Structured learning', 'Best practices']
+      },
+      {
+        title: 'CSS Tricks - Daily Articles',
+        url: 'https://css-tricks.com/',
+        description: 'Daily articles, tutorials, and guides about CSS, web design, and front-end development.',
+        format: 'Blog/Tutorials',
+        benefits: ['Daily learning', 'Advanced CSS', 'Design tips']
+      }
+    ]
+  };
+
+  // Find matching resources for the subject
+  for (const [key, resourceList] of Object.entries(subjectResources)) {
+    if (lowerSubject.includes(key) || key.includes(lowerSubject)) {
+      resources.push(...resourceList);
+      break;
+    }
+  }
+
+  // If no specific match, add general learning resources
+  if (resources.length === 0) {
+    resources = [
+      {
+        title: `${subject} - Khan Academy`,
+        url: `https://www.khanacademy.org/search?page_search_query=${encodeURIComponent(subject)}`,
+        description: `Master ${subject} with Khan Academy's free, world-class education featuring interactive exercises and videos.`,
+        format: 'Interactive Course',
+        benefits: ['Free education', 'Interactive practice', 'Progress tracking']
+      },
+      {
+        title: `${subject} Tutorials - YouTube`,
+        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(subject + ' tutorial')}`,
+        description: `Find comprehensive video tutorials about ${subject} from educational YouTube channels.`,
+        format: 'Video Tutorials',
+        benefits: ['Video learning', 'Multiple sources', 'Free access']
+      },
+      {
+        title: `${subject} Courses - Coursera`,
+        url: `https://www.coursera.org/search?query=${encodeURIComponent(subject)}`,
+        description: `University-level ${subject} courses on Coursera with certificates and guided learning paths.`,
+        format: 'Online Course',
+        benefits: ['University courses', 'Certificates', 'Expert instruction']
+      }
+    ];
+  }
+
+  return {
+    resources: resources.slice(0, 8) // Return top 8 resources
+  };
+}
+
 // Get resources for a user
 router.get('/:userId', async (req, res) => { 
   try {
@@ -119,97 +283,60 @@ router.post('/', async (req, res) => {
     });
     console.log('Active syllabus found:', !!activeSyllabus);
 
-    let searchData;
     let syllabusContext = null;
     let curatedData;
 
-    // Try to search/generate resources, with multiple fallback layers
+    // Try to generate resources with multiple fallback layers
     try {
       if (activeSyllabus) {
         console.log('Generating resources using syllabus context...');
-        // Use syllabus-aware resource generation
+        
+        // Find relevant topics from syllabus
         const relevantSubject = activeSyllabus.subjects.find(s => 
           s.name.toLowerCase().includes(subject.toLowerCase())
         );
         
         const syllabusTopics = relevantSubject ? 
           relevantSubject.topics : 
-          activeSyllabus.aiAnalysis.keyTopics;
+          activeSyllabus.aiAnalysis?.keyTopics || [];
+
+        // Properly construct syllabusContext object
+        const contextObject = {
+          university: activeSyllabus.university || 'University',
+          course: activeSyllabus.course || 'Course',
+          semester: activeSyllabus.semester || '1',
+          subjects: syllabusTopics || [],
+          syllabusContent: activeSyllabus.aiAnalysis?.summary || ''
+        };
 
         try {
-          searchData = await generateUniversityResources(
-            subject,
-            activeSyllabus.university,
-            activeSyllabus.course,
-            syllabusTopics
-          );
-
+          curatedData = await generateUniversityResources(subject, contextObject);
+          
           syllabusContext = {
             university: activeSyllabus.university,
             course: activeSyllabus.course,
             relevantTopics: syllabusTopics
           };
-          console.log('Syllabus-based generation complete');
+          console.log('Syllabus-based generation complete, resources:', curatedData?.resources?.length || 0);
         } catch (genError) {
-          console.warn('Syllabus-based generation failed, trying regular search:', genError.message);
-          searchData = await searchTavily(subject);
+          console.warn('Syllabus-based generation failed:', genError.message);
+          console.log('Falling back to subject-specific resources');
+          curatedData = generateSubjectResources(subject);
         }
       } else {
         console.log('Generating resources without syllabus context...');
-        // Fallback to regular search
-        searchData = await searchTavily(subject);
-        console.log('Tavily search complete');
-      }
-
-      // Curate the search results
-      if (searchData && searchData.results && searchData.results.length > 0) {
-        try {
-          console.log('Curating resources from search data...');
-          curatedData = await curateResources(searchData, subject);
-          console.log('Curation complete, resources count:', curatedData?.resources?.length || 0);
-        } catch (curationError) {
-          console.error('Curation error:', curationError.message);
-          console.log('Curation failed, using mock fallback resources');
-          curatedData = null; // Will trigger mock generation below
-        }
-      } else {
-        console.log('Search returned no results, using mock fallback');
-        curatedData = null; // Will trigger mock generation below
+        curatedData = generateSubjectResources(subject);
       }
     } catch (searchError) {
       console.error('Search/generation error:', searchError.message);
-      console.log('All search methods failed, using complete fallback');
-      curatedData = null; // Will trigger mock generation below
+      console.log('All search methods failed, using subject fallback');
+      curatedData = generateSubjectResources(subject);
     }
 
-    // Generate mock/fallback resources if any step failed
+    // Ensure we have curated data
     if (!curatedData || !curatedData.resources || curatedData.resources.length === 0) {
-      console.log('Generating fallback mock resources...');
-      curatedData = {
-        resources: [
-          {
-            title: `Introduction to ${subject}`,
-            url: 'https://www.google.com/search?q=' + encodeURIComponent(subject),
-            description: 'Start with a Google search to find basic resources about ' + subject,
-            format: 'search',
-            benefits: ['General overview', 'Multiple perspectives']
-          },
-          {
-            title: `${subject} on Wikipedia`,
-            url: 'https://en.wikipedia.org/wiki/Special:Search?search=' + encodeURIComponent(subject),
-            description: 'Comprehensive encyclopedia article on ' + subject,
-            format: 'encyclopedia',
-            benefits: ['Detailed information', 'Well-sourced']
-          },
-          {
-            title: `Learn ${subject}`,
-            url: 'https://www.coursera.org/search?query=' + encodeURIComponent(subject),
-            description: 'Find courses about ' + subject + ' on Coursera',
-            format: 'course',
-            benefits: ['Structured learning', 'Professional instruction']
-          }
-        ]
-      };
+      console.log('No resources available, generating minimal fallback...');
+      curatedData = generateSubjectResources(subject);
     }
     // Validate and transform resources to match schema
     const validatedResources = curatedData.resources.map(resource => ({
