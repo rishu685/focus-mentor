@@ -54,8 +54,11 @@ export default function StudyPlanPage() {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           },
-          cache: force ? 'no-cache' : 'default'
+          cache: 'no-store'
         });
         
         console.log('Frontend API response status:', response.status, response.statusText);
@@ -124,7 +127,14 @@ export default function StudyPlanPage() {
         // Try one more time with frontend API
         console.log('No plans found, trying frontend API one more time...');
         try {
-          const retryResponse = await fetch(`/api/study-plan/${userId}`);
+          const retryResponse = await fetch(`/api/study-plan/${userId}`, {
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            },
+            cache: 'no-store'
+          });
           if (retryResponse.ok) {
             const retryData = await retryResponse.json();
             if (retryData.success && retryData.plans) {
@@ -241,6 +251,11 @@ export default function StudyPlanPage() {
           title: "Success",
           description: response.message || "Study plan deleted successfully."
         });
+        
+        // Force refetch to ensure UI is in sync with backend
+        // Small delay to ensure backend has processed deletion
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await fetchPlans(true);
       } else {
         throw new Error(response.message || 'Failed to delete plan');
       }

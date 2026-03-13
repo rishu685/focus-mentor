@@ -150,6 +150,7 @@ router.delete('/:planId', async (req, res) => {
     const { planId } = req.params;
     
     if (!planId) {
+      console.log('Delete request missing planId');
       return res.status(400).json({
         success: false,
         error: 'INVALID_INPUT',
@@ -157,13 +158,24 @@ router.delete('/:planId', async (req, res) => {
       });
     }
 
+    console.log('=== STUDY PLAN DELETE DEBUG ===');
+    console.log('Attempting to delete plan:', planId);
+    
     // Hard delete the plan instead of soft delete to ensure it's completely gone
-    console.log('Hard deleting plan:', planId);
     const deletedPlan = await StudyPlan.findByIdAndDelete(planId);
     
     console.log('Plan deletion result:', deletedPlan ? 'Successfully deleted' : 'Plan not found');
     
+    if (deletedPlan) {
+      console.log('Deleted plan details:', {
+        id: deletedPlan._id,
+        subject: deletedPlan.overview?.subject,
+        userId: deletedPlan.userId
+      });
+    }
+    
     if (!deletedPlan) {
+      console.log('Plan not found in database');
       return res.status(404).json({
         success: false,
         error: 'PLAN_NOT_FOUND',
@@ -171,13 +183,19 @@ router.delete('/:planId', async (req, res) => {
       });
     }
 
+    console.log('✅ Plan deleted successfully');
     return res.json({
       success: true,
-      message: 'Study plan deleted successfully'
+      message: 'Study plan deleted successfully',
+      deletedPlanId: deletedPlan._id
     });
 
   } catch (error) {
     console.error('Error deleting plan:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message
+    });
     return res.status(500).json({
       success: false,
       error: 'SERVER_ERROR',
