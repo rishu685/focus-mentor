@@ -3,8 +3,9 @@ services:
     name: mind-mentor-backend
     env: node
     buildCommand: npm ci
-    startCommand: npm start
+    startCommand: node --expose-gc --max-old-space-size=512 index.js
     healthCheckPath: /
+    plan: standard
     envVars:
       - key: NODE_ENV
         value: production
