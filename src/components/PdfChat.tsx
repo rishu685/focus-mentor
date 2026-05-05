@@ -69,8 +69,19 @@ export default function PdfChat({ documentId }: PdfChatProps) {
         });
         
         if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to load chat history');
+          let errorMessage = 'Failed to load chat history';
+          try {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              const error = await response.json();
+              errorMessage = error.error || error.message || errorMessage;
+            } else {
+              errorMessage = `Error: ${response.status} ${response.statusText}`;
+            }
+          } catch (parseError) {
+            errorMessage = `Error: ${response.status} ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
         
         const data = await response.json();
@@ -131,8 +142,19 @@ export default function PdfChat({ documentId }: PdfChatProps) {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to get response');
+        let errorMessage = 'Failed to get response';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const error = await response.json();
+            errorMessage = error.error || error.message || errorMessage;
+          } else {
+            errorMessage = `Error: ${response.status} ${response.statusText}`;
+          }
+        } catch (parseError) {
+          errorMessage = `Error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
