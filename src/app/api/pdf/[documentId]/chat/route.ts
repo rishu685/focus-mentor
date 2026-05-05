@@ -28,9 +28,16 @@ export async function POST(
     const { documentId } = params;
     const body = await request.json();
 
+    console.log('PDF Chat Request:', {
+      documentId,
+      userId,
+      apiUrl,
+      contentLength: JSON.stringify(body).length
+    });
+
     // Create AbortController for timeout handling
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 second timeout
 
     try {
       const response = await fetch(`${apiUrl}/pdf/${documentId}/chat`, {
@@ -44,6 +51,8 @@ export async function POST(
       });
 
       clearTimeout(timeoutId);
+
+      console.log('PDF Chat Response Status:', response.status);
 
       if (!response.ok) {
         let backendError = 'Failed to process chat request';
@@ -62,6 +71,11 @@ export async function POST(
           backendError = `Error: ${response.status} ${response.statusText}`;
         }
 
+        console.error('Backend error response:', {
+          status: response.status,
+          error: backendError
+        });
+
         return NextResponse.json(
           { error: backendError },
           { status: response.status }
@@ -74,16 +88,25 @@ export async function POST(
       clearTimeout(timeoutId);
       
       if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.error('Request timeout - backend took too long to respond');
         return NextResponse.json(
           { error: 'Request timeout - PDF processing is taking longer than expected. Please try again.' },
           { status: 408 }
         );
       }
       
+      console.error('Fetch error details:', {
+        name: fetchError instanceof Error ? fetchError.name : 'Unknown',
+        message: fetchError instanceof Error ? fetchError.message : String(fetchError)
+      });
+      
       throw fetchError;
     }
   } catch (error) {
-    console.error('Error in PDF chat:', error);
+    console.error('Error in PDF chat:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
       { error: message },

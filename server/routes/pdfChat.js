@@ -188,14 +188,23 @@ router.delete('/:documentId', async (req, res) => {
 // Chat with PDF
 router.post('/:id/chat', async (req, res) => {
   try {
+    console.log('=== PDF CHAT REQUEST ===');
+    console.log('Document ID:', req.params.id);
+    
     const userId = req.headers['x-user-id'];
     if (!userId) {
+      console.warn('Missing user ID in request');
       return res.status(401).json({ error: 'User ID is required' });
     }
 
+    console.log('User ID:', userId);
+
     if (!req.body?.content || typeof req.body.content !== 'string' || !req.body.content.trim()) {
+      console.warn('Invalid content in request body');
       return res.status(400).json({ error: 'Question content is required' });
     }
+
+    console.log('Content length:', req.body.content.length);
 
     const pdf = await PdfDocument.findOne({ 
       _id: req.params.id,
@@ -203,16 +212,23 @@ router.post('/:id/chat', async (req, res) => {
     });
 
     if (!pdf) {
+      console.warn('PDF not found for user:', userId, 'document:', req.params.id);
       return res.status(404).json({ error: 'PDF not found' });
     }
 
+    console.log('PDF found, starting chat processing...');
+
     // Process the chat message using the PDF content
     const pdfBuffer = base64ToBuffer(pdf.pdfData);
+    console.log('PDF buffer created, size:', pdfBuffer.length);
+
     const { answer, sourcePages, sources } = await chatWithPdf(
       pdfBuffer,
       req.body.content,
       pdf.chatHistory
     );
+
+    console.log('Chat response generated, adding to history...');
 
     // Add messages to chat history
     pdf.chatHistory.push({
@@ -231,6 +247,8 @@ router.post('/:id/chat', async (req, res) => {
 
     await pdf.save();
 
+    console.log('✅ Chat saved successfully');
+
     res.json({ 
       message: answer,
       sourcePages: sourcePages,
@@ -238,8 +256,15 @@ router.post('/:id/chat', async (req, res) => {
       chatHistory: pdf.chatHistory
     });
   } catch (error) {
-    console.error('Error in PDF chat:', error);
-    res.status(500).json({ error: error.message || 'Failed to process chat request' });
+    console.error('=== ERROR IN PDF CHAT ===');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    res.status(500).json({ 
+      error: error.message || 'Failed to process chat request',
+      details: process.env.NODE_ENV === 'production' ? undefined : error.stack
+    });
   }
 });
 
