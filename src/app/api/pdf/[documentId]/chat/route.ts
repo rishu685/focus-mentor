@@ -48,13 +48,18 @@ export async function POST(
       if (!response.ok) {
         let backendError = 'Failed to process chat request';
         try {
-          const error = await response.json();
-          backendError = error.error || error.message || backendError;
-        } catch {
-          const errorText = await response.text();
-          if (errorText) {
-            backendError = errorText;
+          // Clone the response to safely check content type
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const error = await response.json();
+            backendError = error.error || error.message || backendError;
+          } else {
+            const errorText = await response.text();
+            backendError = errorText || backendError;
           }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+          backendError = `Error: ${response.status} ${response.statusText}`;
         }
 
         return NextResponse.json(
