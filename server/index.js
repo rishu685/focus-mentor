@@ -103,6 +103,27 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Memory monitoring endpoint
+app.get('/memory', (req, res) => {
+  if (global.gc) {
+    global.gc(); // Force garbage collection
+  }
+  
+  const memUsage = process.memoryUsage();
+  res.status(200).json({
+    status: 'ok',
+    memory: {
+      rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`, // Resident Set Size
+      heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
+      heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+      external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
+      arrayBuffers: `${Math.round(memUsage.arrayBuffers / 1024 / 1024)}MB`,
+    },
+    uptime: `${Math.round(process.uptime())}s`,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
@@ -223,4 +244,16 @@ app.use((err, req, res, next) => {
 server.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on port ${port}`);
   console.log('Socket.io enabled for real-time communication');
+  
+  // Periodic memory monitoring
+  setInterval(() => {
+    const mem = process.memoryUsage();
+    const heapUsedPercent = Math.round((mem.heapUsed / mem.heapTotal) * 100);
+    console.log(`💾 Memory: Heap ${heapUsedPercent}% (${Math.round(mem.heapUsed / 1024 / 1024)}MB/${Math.round(mem.heapTotal / 1024 / 1024)}MB), RSS ${Math.round(mem.rss / 1024 / 1024)}MB`);
+    
+    // Warn if heap usage is getting high
+    if (heapUsedPercent > 80) {
+      console.warn('⚠️  HIGH MEMORY USAGE - Consider scaling or optimizing');
+    }
+  }, 5 * 60 * 1000); // Log every 5 minutes
 });

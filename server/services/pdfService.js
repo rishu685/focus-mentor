@@ -15,9 +15,9 @@ dotenv.config();
 
 // Keep query cache bounded to avoid unbounded memory growth under chat load.
 const cache = new NodeCache({
-  stdTTL: 900,
-  checkperiod: 120,
-  maxKeys: 500,
+  stdTTL: 600, // Reduce TTL from 900s to 600s (10 min) to clear cache faster
+  checkperiod: 60,  // Check every minute
+  maxKeys: 100, // Reduce from 500 to 100 to limit memory
   useClones: false,
 });
 
@@ -59,8 +59,8 @@ const embeddings = new TransformersEmbeddingsAdapter();
 
 // Vector stores are large; keep a small bounded LRU-style cache.
 const vectorStores = new Map();
-const MAX_VECTOR_STORES = 3;
-const VECTOR_STORE_TTL_MS = 20 * 60 * 1000; // 20 minutes
+const MAX_VECTOR_STORES = 2; // Reduce from 3 to 2 to save memory
+const VECTOR_STORE_TTL_MS = 10 * 60 * 1000; // Reduce from 20 to 10 minutes
 
 function cleanupVectorStores() {
   const now = Date.now();
@@ -94,10 +94,14 @@ function cleanupVectorStores() {
 
 const vectorStoreCleanupInterval = setInterval(() => {
   cleanupVectorStores();
+  // Force garbage collection if available (enable with --expose-gc)
+  if (global.gc) {
+    global.gc();
+  }
   if (vectorStores.size > 0) {
     console.log(`🧹 Vector store cache size: ${vectorStores.size}`);
   }
-}, 5 * 60 * 1000);
+}, 3 * 60 * 1000); // Run cleanup every 3 minutes instead of 5
 
 // Allow process to exit naturally without being held by this timer.
 if (typeof vectorStoreCleanupInterval.unref === 'function') {

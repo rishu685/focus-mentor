@@ -38,9 +38,9 @@ class TransformersEmbeddings {
       console.log('🚀 Initializing Transformers.js embedding model...');
       console.log(`📦 Model: ${this.modelName}`);
       
-      // Load the feature extraction pipeline
+      // Load the feature extraction pipeline with quantization for memory efficiency
       this.model = await pipeline('feature-extraction', this.modelName, {
-        quantized: false, // Use full precision for better quality
+        quantized: true, // Use quantized model to save ~50% memory
         progress_callback: (progress) => {
           if (progress.status === 'progress') {
             console.log(`📥 Downloading model: ${Math.round(progress.progress * 100)}%`);

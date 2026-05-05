@@ -8,11 +8,32 @@ import transformersEmbeddings from '../services/transformersEmbeddings.js';
 
 const router = express.Router();
 
-// Configure multer for memory storage
+// Configure multer for disk storage (memory efficient)
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadDir = path.join(path.dirname(__dirname), 'uploads', 'pdfs');
+
+// Ensure upload directory exists
+import { mkdir } from 'fs/promises';
+await mkdir(uploadDir, { recursive: true }).catch(() => {});
+
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(7);
+      cb(null, `${timestamp}-${random}.pdf`);
+    }
+  }),
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 5 * 1024 * 1024 // Reduce from 10MB to 5MB
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
@@ -106,6 +127,7 @@ router.get('/:id', async (req, res) => {
 
 // Upload and process PDF
 router.post('/upload', upload.single('pdf'), async (req, res) => {
+  let tempFilePath = null;
   try {
     console.log('Upload request received');
 
@@ -114,18 +136,25 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    tempFilePath = req.file.path;
     const userId = req.headers['x-user-id'];
     if (!userId) {
       console.error('No user ID in request');
-      return res.status(401).json({ error: 'User ID is required' });
+      return res.status(400).json({ error: 'User ID is required' });
     }
 
     try {
-      // Convert buffer to Base64
-      const pdfData = bufferToBase64(req.file.buffer);
+      // Read PDF from disk
+      const pdfBuffer = await fs.readFile(tempFilePath);
+      
+      console.log(`Processing PDF: ${req.file.originalname} (${pdfBuffer.length} bytes)`);
 
       // Process PDF using the service
-      const { documentChunks, pageCount } = await processPdf(req.file.buffer);
+      const { documentChunks, pageCount } = await processPdf(pdfBuffer);
+
+      // Store only essential PDF data - store a truncated version for display
+      // Full PDF processing happens when needed
+      const pdfData = bufferToBase64(pdfBuffer.slice(0, 1024 * 100)); // Store only first 100KB for preview
 
       // Create new PDF document in database
       const pdfDoc = new PdfDocument({
@@ -134,10 +163,13 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
         pdfData,
         pageCount,
         documentChunks,
-        chatHistory: []
+        chatHistory: [],
+        fileSize: pdfBuffer.length
       });
 
       await pdfDoc.save();
+
+      console.log(`✅ PDF saved: ${pdfDoc._id}`);
 
       res.json({
         _id: pdfDoc._id,
@@ -158,6 +190,13 @@ router.post('/upload', upload.single('pdf'), async (req, res) => {
       error: 'Server error during upload',
       details: error.message 
     });
+  } finally {
+    // Clean up temporary file
+    if (tempFilePath) {
+      fs.unlink(tempFilePath).catch(err => 
+        console.warn('Failed to delete temp file:', err.message)
+      );
+    }
   }
 });
 
