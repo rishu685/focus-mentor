@@ -124,7 +124,7 @@ export const apiClient = {
 
   async deleteStudyPlan(planId: string) {
     const timestamp = Date.now();
-    const response = await fetch(`/api/study-plan/delete/${planId}?t=${timestamp}`, {
+    const response = await fetch(`/api/study-plan/${planId}?t=${timestamp}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
