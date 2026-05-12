@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)](https://www.docker.com/)
 
-[🚀 Live Demo](#) | [📖 Documentation](#usage-guide) | [🐛 Report Bug](https://github.com/rishu685/focus-mentor-/issues) | [💡 Request Feature](https://github.com/rishu685/focus-mentor-/issues)
+[🚀 Live Demo](https://focus-mentor.netlify.app/) | [📖 Documentation](#usage-guide) | [🐛 Report Bug](https://github.com/rishu685/focus-mentor-/issues) | [💡 Request Feature](https://github.com/rishu685/focus-mentor-/issues)
 
 </div>
 
