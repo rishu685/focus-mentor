@@ -29,8 +29,8 @@ Click "Advanced" and add these environment variables:
 **Required:**
 ```
 MONGODB_URI=mongodb+srv://your-username:your-password@cluster.mongodb.net/mindmentor?retryWrites=true&w=majority
-GROQ_API_KEY=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
-GROQ_API_KEY_RAG=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
+GROQ_API_KEY=gsk_your-groq-api-key-here
+GROQ_API_KEY_RAG=gsk_your-groq-api-key-here
 PORT=10000
 NODE_ENV=production
 ```
