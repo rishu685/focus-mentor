@@ -18,7 +18,9 @@ const uploadDir = path.join(path.dirname(__dirname), 'uploads', 'pdfs');
 
 // Ensure upload directory exists
 import { mkdir } from 'fs/promises';
-await mkdir(uploadDir, { recursive: true }).catch(() => {});
+(async () => {
+  await mkdir(uploadDir, { recursive: true }).catch(() => {});
+})();
 
 const upload = multer({
   storage: multer.diskStorage({
